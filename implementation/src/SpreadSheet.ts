@@ -179,7 +179,8 @@ export class Spreadsheet {
      * Method to clear the content of a cell at the specified row and column.
      */
     public clearCellContents(row: number, col: number): void {
-        // ...
+        let cell = this.cells[row][col];
+        cell.clear();
     }
 
 
@@ -190,15 +191,31 @@ export class Spreadsheet {
         // ...
     }
 
-
-    /**
-     * Method to find all occurrences of a string in the spreadsheet and return their positions.
-     */
-    public find(searchString: string): [number, number][] {
-        throw new Error("Method not implemented.");
+  /**
+   * Returns the content of a provided cell. If the content is null it passes it as a
+   * CellContent type.
+   */
+  public getContent(cell: Cell): CellContent {
+    return cell.getCellContent as unknown as CellContent;
+  }
+    
+  /**
+   * Method to find all occurrences of a string in the spreadsheet and return their positions.
+   */
+  public find(searchString: string): Array<[number, number]> {
+    let result;
+    for (let i = 0; i < this.cells.length; i++) {
+      for (let j = 0; j < this.cells[0].length; j++) {
+        let content = this.cells[i][j];
+        if (
+          this.getContent(content).getContent.toString().includes(searchString)
+        ) {
+          result.push([i, j]);
+        }
+      }
     }
-
-
+    return result;
+  }
 
 
     /**
