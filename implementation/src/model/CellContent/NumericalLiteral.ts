@@ -5,7 +5,6 @@ import { CellContent } from "../Interfaces/ICellContent";
 */
 export class NumericLiteral implements CellContent {
 
-
     private val: string; // the value of the numeric literal in string format
  
  
@@ -16,22 +15,19 @@ export class NumericLiteral implements CellContent {
         this.val = val;
     }
  
- 
     /*
     * Returns the content of the cell in string form.
     */
     public getContent(): string {
         return this.val;
     }
- 
-  /*
-   * Changes the value of the cell to the given newval argument.
-   */
-  public setContent(newval: string): void {
-    this.val = newval;
-}
-
-
+    
+    /*
+    * Changes the value of the cell to the given newval argument.
+    */
+    public setContent(newval: string): void {
+        this.val = newval;
+    }
 }
 
  
