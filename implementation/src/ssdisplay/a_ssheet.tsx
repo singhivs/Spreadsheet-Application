@@ -1,23 +1,23 @@
 import React, { useState, useEffect } from "react";
 import "./a_ss.css";
 import { CellV } from "./cell";
-import { Spreadsheet } from "../Spreadsheet";
+import { Spreadsheet } from "../SpreadSheet";
 import { Cell } from "../Cell";
 import { ContextMenu } from "./styles";
 import useContextMenu from "./useContextMenu";
 
-const cellA: Cell = new Cell(1);
-const cellB: Cell = new Cell(2);
-const cellC: Cell = new Cell(3);
-const cellD: Cell = new Cell(4);
-const cellE: Cell = new Cell(5);
-const cellF: Cell = new Cell(6);
-const cellG: Cell = new Cell(7);
-const cellH: Cell = new Cell(8);
-const cellI: Cell = new Cell(9);
-const cellJ: Cell = new Cell(10);
-const cellK: Cell = new Cell(11);
-const cellL: Cell = new Cell(12);
+const cellA: Cell = new Cell(new NumericLiteral("1"), 0, 0);
+const cellB: Cell = new Cell(new NumericLiteral("2"), 0, 1);
+const cellC: Cell = new Cell(new NumericLiteral("3"), 0, 2);
+const cellD: Cell = new Cell(new NumericLiteral("4"), 1, 0);
+const cellE: Cell = new Cell(new NumericLiteral("5"), 1, 1);
+const cellF: Cell = new Cell(new NumericLiteral("6"), 1, 2);
+const cellG: Cell = new Cell(new NumericLiteral("7"), 2, 0);
+const cellH: Cell = new Cell(new NumericLiteral("8"), 2, 1);
+const cellI: Cell = new Cell(new NumericLiteral("9"), 2, 2);
+const cellJ: Cell = new Cell(new NumericLiteral("10"), 3, 0);
+const cellK: Cell = new Cell(new NumericLiteral("11"), 3, 1);
+const cellL: Cell = new Cell(new NumericLiteral("12"), 3, 2);
 
 // instead should pass the Spreadsheet in as a prop or value
 export default function SpreadsheetV() {
@@ -28,7 +28,7 @@ export default function SpreadsheetV() {
   [cellJ, cellK, cellL],
  ];
 
- const [model, reassess] = useState(new Spreadsheet(arrCells, [], 300, 52));
+ const [model, reassess] = useState(new Spreadsheet(arrCells, 300, 52));
  const [tool, setTool] = useState(0);
  const { clicked, setClicked, points, setPoints } = useContextMenu();
  // get cell data
@@ -43,13 +43,13 @@ export default function SpreadsheetV() {
  };
 
  function pressAddRow() {
-  model.addRow();
+  model.addRow(model.cells.length);
   console.log(model.cells);
   if (tool === 0) setTool(1);
   else setTool(0);
  }
  function pressAddCol() {
-  model.addColumn();
+  model.addColumn(model.cells[0].length);
   console.log(model.cells);
   if (tool === 0) setTool(1);
   else setTool(0);
@@ -114,7 +114,7 @@ export default function SpreadsheetV() {
               });
              }}
             >
-             <CellV displayValue={cell.getVal()}></CellV>
+             <CellV displayValue={cell.getCellContent()}></CellV>
             </td>
            );
           })}
