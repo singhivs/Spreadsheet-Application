@@ -47,28 +47,24 @@ export class Spreadsheet {
    throw new Error("Row index out of bounds");
   }
 
-  //   // Create a new row with default cells or however your Cell class is instantiated
-  //   const newRow: Cell[] = new Array(this.maxCol)
-  //    .fill(null)
-  //    .map((_, colIndex) => {
-  //     // Replace with the correct instantiation of a default cell
-  //     return new Cell(new NumericLiteral("0"), index, colIndex);
-  //    });
+  // Create a new row with default cells or however your Cell class is instantiated
+  const newRow: Cell[] = new Array(this.cells[0].length)
+   .fill(null)
+   .map((_, colIndex) => {
+    // Replace with the correct instantiation of a default cell
+    return new Cell(new StringLiteral(""), index, colIndex);
+   });
 
-  //   // Insert the new row into the cells array at the specified index
-  //   this.cells.splice(index, 0, newRow);
+  // Insert the new row into the cells array at the specified index
+  this.cells.splice(index, 0, newRow);
 
-  //   // Update the row indices for all rows below the inserted row
-  //   for (let i = index + 1; i < this.cells.length; i++) {
-  //    this.cells[i].forEach((cell) => {
-  //     cell.setRow(cell.getRow() + 1);
-  //    });
-  //   }
-  const cellArr: Cell[] = [];
-  for (let i: number = 0; i < this.cells[0].length; i++) {
-   cellArr.push(new Cell(new StringLiteral(""), i, this.cells[i].length));
+  // Update the row indices for all rows below the inserted row
+  for (let i = index + 1; i < this.cells.length; i++) {
+   this.cells[i].forEach((cell) => {
+    cell.setRow(cell.getRow() + 1);
+   });
   }
-  this.cells.push(cellArr);
+
   this.renumber(this.cells.length - 1, 0);
 
   // Update range expressions
@@ -84,19 +80,13 @@ export class Spreadsheet {
    throw new Error("Column index out of bounds.");
   }
 
-  //   // Insert a new column at columnIndex for each row
-  //   for (let rowIndex = 0; rowIndex < this.cells.length; rowIndex++) {
-  //    // Create a new cell with default content, here I'm assuming a StringLiteral with an empty string
-  //    const newCell = new Cell(new StringLiteral(""), rowIndex, index);
-  //    // Insert the new cell into the current row at the specified index
-  //    this.cells[rowIndex].splice(index, 0, newCell);
-  //   }
-
-  //   // Update the column indices for cells after the inserted column
-  for (let i: number = 0; i < this.cells.length; i++) {
-   this.cells[i].push(new Cell(new StringLiteral(""), i, this.cells[i].length));
+  // Insert a new column at columnIndex for each row
+  for (let rowIndex = 0; rowIndex < this.cells.length; rowIndex++) {
+   // Create a new cell with default content, here I'm assuming a StringLiteral with an empty string
+   const newCell = new Cell(new StringLiteral(""), rowIndex, index);
+   // Insert the new cell into the current row at the specified index
+   this.cells[rowIndex].splice(index, 0, newCell);
   }
-  this.renumber(0, this.cells[0].length);
 
   // Update range expressions
   this.updateRangeExpressionsForColumnChange(index, "add");
