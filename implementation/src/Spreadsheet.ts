@@ -47,23 +47,30 @@ export class Spreadsheet {
    throw new Error("Row index out of bounds");
   }
 
-  // Create a new row with default cells or however your Cell class is instantiated
-  const newRow: Cell[] = new Array(this.maxCol)
-   .fill(null)
-   .map((_, colIndex) => {
-    // Replace with the correct instantiation of a default cell
-    return new Cell(new NumericLiteral("0"), index, colIndex);
-   });
+  //   // Create a new row with default cells or however your Cell class is instantiated
+  //   const newRow: Cell[] = new Array(this.maxCol)
+  //    .fill(null)
+  //    .map((_, colIndex) => {
+  //     // Replace with the correct instantiation of a default cell
+  //     return new Cell(new NumericLiteral("0"), index, colIndex);
+  //    });
 
-  // Insert the new row into the cells array at the specified index
-  this.cells.splice(index, 0, newRow);
+  //   // Insert the new row into the cells array at the specified index
+  //   this.cells.splice(index, 0, newRow);
 
-  // Update the row indices for all rows below the inserted row
-  for (let i = index + 1; i < this.cells.length; i++) {
-   this.cells[i].forEach((cell) => {
-    cell.setRow(cell.getRow() + 1);
-   });
+  //   // Update the row indices for all rows below the inserted row
+  //   for (let i = index + 1; i < this.cells.length; i++) {
+  //    this.cells[i].forEach((cell) => {
+  //     cell.setRow(cell.getRow() + 1);
+  //    });
+  //   }
+  const cellArr: Cell[] = [];
+  for (let i: number = 0; i < this.cells[0].length; i++) {
+   cellArr.push(new Cell(new StringLiteral(""), i, this.cells[i].length));
   }
+  this.cells.push(cellArr);
+  this.renumber(this.cells.length - 1, 0);
+
   // Update range expressions
   this.updateRangeExpressionsForRowChange(index, "delete");
  }
@@ -77,20 +84,20 @@ export class Spreadsheet {
    throw new Error("Column index out of bounds.");
   }
 
-  // Insert a new column at columnIndex for each row
-  for (let rowIndex = 0; rowIndex < this.cells.length; rowIndex++) {
-   // Create a new cell with default content, here I'm assuming a StringLiteral with an empty string
-   const newCell = new Cell(new StringLiteral(""), rowIndex, index);
-   // Insert the new cell into the current row at the specified index
-   this.cells[rowIndex].splice(index, 0, newCell);
-  }
+  //   // Insert a new column at columnIndex for each row
+  //   for (let rowIndex = 0; rowIndex < this.cells.length; rowIndex++) {
+  //    // Create a new cell with default content, here I'm assuming a StringLiteral with an empty string
+  //    const newCell = new Cell(new StringLiteral(""), rowIndex, index);
+  //    // Insert the new cell into the current row at the specified index
+  //    this.cells[rowIndex].splice(index, 0, newCell);
+  //   }
 
-  // Update the column indices for cells after the inserted column
-  for (let row of this.cells) {
-   for (let col = index + 1; col < row.length; col++) {
-    row[col].setCol(col);
-   }
+  //   // Update the column indices for cells after the inserted column
+  for (let i: number = 0; i < this.cells.length; i++) {
+   this.cells[i].push(new Cell(new StringLiteral(""), i, this.cells[i].length));
   }
+  this.renumber(0, this.cells[0].length);
+
   // Update range expressions
   this.updateRangeExpressionsForColumnChange(index, "add");
  }
@@ -192,7 +199,7 @@ export class Spreadsheet {
   * Method to find all occurrences of a string in the spreadsheet and return their positions.
   */
  public find(searchString: string): Array<[number, number]> {
-  let result;
+  let result: Array<[number, number]> = [];
   for (let i = 0; i < this.cells.length; i++) {
    for (let j = 0; j < this.cells[0].length; j++) {
     let content = this.cells[i][j];
@@ -361,5 +368,16 @@ export class Spreadsheet {
    i = Math.floor((i - mod) / 26);
   }
   return column;
+ }
+
+ private renumber(rowStart: number, colStart: number): void {
+  for (let i: number = rowStart; i < this.cells.length; i++) {
+   for (let j: number = colStart; j < this.cells[i].length; j++) {
+    if (this.cells[i][j] !== undefined) {
+     this.cells[i][j].setRow(i);
+     this.cells[i][j].setCol(j);
+    }
+   }
+  }
  }
 }

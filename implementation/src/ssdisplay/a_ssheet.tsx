@@ -5,6 +5,7 @@ import { Spreadsheet } from "../SpreadSheet";
 import { Cell } from "../Cell";
 import { ContextMenu } from "./styles";
 import useContextMenu from "./useContextMenu";
+import { NumericLiteral } from "../model/CellContent/NumericalLiteral";
 
 const cellA: Cell = new Cell(new NumericLiteral("1"), 0, 0);
 const cellB: Cell = new Cell(new NumericLiteral("2"), 0, 1);
@@ -114,7 +115,7 @@ export default function SpreadsheetV() {
               });
              }}
             >
-             <CellV displayValue={cell.getCellContent()}></CellV>
+             <CellV displayValue={cell.getCellContent()?.getContent()}></CellV>
             </td>
            );
           })}
