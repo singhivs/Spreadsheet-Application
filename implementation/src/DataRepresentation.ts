@@ -8,7 +8,7 @@ import { Spreadsheet } from "./SpreadSheet";
 * but not necessarily the same visualize() function (e.g. scatter, bar, line, pie chart)
 */
 export class ADataRepresentation {
-    private cellData: Array<Cell>; // the cell data used in the data representation
+    private cellData: Array<Cell> = []; // the cell data used in the data representation
    
     /**
      * Constructor that parses string for cell references, locates the correct cells in the spreadsheet
