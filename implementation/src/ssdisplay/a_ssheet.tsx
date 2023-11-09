@@ -1,37 +1,47 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useReducer } from "react";
 import "./a_ss.css";
 import { CellV } from "./cell";
-import { Spreadsheet } from "../SpreadSheet";
+import { Spreadsheet } from "../Spreadsheet";
 import { Cell } from "../Cell";
 import { ContextMenu } from "./styles";
 import useContextMenu from "./useContextMenu";
-import { NumericLiteral } from "../model/CellContent/NumericalLiteral";
-
-const cellA: Cell = new Cell(new NumericLiteral("1"), 0, 0);
-const cellB: Cell = new Cell(new NumericLiteral("2"), 0, 1);
-const cellC: Cell = new Cell(new NumericLiteral("3"), 0, 2);
-const cellD: Cell = new Cell(new NumericLiteral("4"), 1, 0);
-const cellE: Cell = new Cell(new NumericLiteral("5"), 1, 1);
-const cellF: Cell = new Cell(new NumericLiteral("6"), 1, 2);
-const cellG: Cell = new Cell(new NumericLiteral("7"), 2, 0);
-const cellH: Cell = new Cell(new NumericLiteral("8"), 2, 1);
-const cellI: Cell = new Cell(new NumericLiteral("9"), 2, 2);
-const cellJ: Cell = new Cell(new NumericLiteral("10"), 3, 0);
-const cellK: Cell = new Cell(new NumericLiteral("11"), 3, 1);
-const cellL: Cell = new Cell(new NumericLiteral("12"), 3, 2);
+import { RangeExpression } from "../model/CellContent/RangeExpression";
+import { CellReference } from "../model/CellContent/CellReference";
+import { StringLiteral } from "../model/CellContent/StringLiteral";
+import { Nav } from "./a_nav";
 
 // instead should pass the Spreadsheet in as a prop or value
 export default function SpreadsheetV() {
- const arrCells: Cell[][] = [
-  [cellA, cellB, cellC],
-  [cellD, cellE, cellF],
-  [cellG, cellH, cellI],
-  [cellJ, cellK, cellL],
- ];
-
+ const [searchValue, setSearchValue] = useState(""); // State for search input value
+ const { points, setPoints } = useContextMenu();
+ const arrCells: Cell[][] = createCells();
  const [model, reassess] = useState(new Spreadsheet(arrCells, 300, 52));
  const [tool, setTool] = useState(0);
- const { clicked, setClicked, points, setPoints } = useContextMenu();
+ const [history, setHistory] = useState([model]);
+ // const [history, dispatch] = useReducer(historyReducer, []);
+
+ function createCells(): Cell[][] {
+  // Define the dimensions of the 2D array
+  const numRows = 25;
+  const numCols = 25;
+
+  // Create a 2D array of cells
+  const cellArray: Cell[][] = [];
+
+  // Populate the 2D array with cells
+  for (let row = 0; row < numRows; row++) {
+   const rowArray: Cell[] = [];
+   for (let col = 0; col < numCols; col++) {
+    // Initialize each cell with a StringLiteral content (you can use any suitable CellContent)
+    const cellContent = new StringLiteral("");
+    const cell = new Cell(cellContent, row, col);
+    rowArray.push(cell);
+   }
+   cellArray.push(rowArray);
+  }
+  return cellArray;
+ }
+
  // get cell data
  const numToLetter = (col: number) => {
   let c = col;
@@ -43,18 +53,91 @@ export default function SpreadsheetV() {
   return start;
  };
 
- function pressAddRow() {
-  model.addRow(model.cells.length);
+ // Function to check if a cell value matches the search input
+ const isCellMatchingSearch = (cellValue: string) => {
+  if (searchValue != "") {
+   return cellValue.toLowerCase().includes(searchValue.toLowerCase());
+  }
+  return false;
+ };
+
+ function undo() {
+  console.log("hello");
+  reassess(new Spreadsheet(history[history.length - 2].cells, 300, 52));
+  if (tool === 0) setTool(1);
+  else setTool(0);
+ }
+
+ function updateCell(x: number, y: number, value: string) {
+  // model.cells[x][y].getCellContent()?.setContent(value);
+  // console.log(model.cells);
+  // let newModel = Object.assign({}, model);
+  // reassess(newModel);
+  //const newModel = { ...model }; // Create a deep copy
+  if (model.cells[x][y].getCellContent() instanceof CellReference) {
+   model.cells[x][y].setCellContent(new StringLiteral(value));
+  } else {
+   model.cells[x][y].getCellContent()?.setContent(value);
+  }
+  console.log("abc", model.cells);
+  let newModel = new Spreadsheet(model.cells, 300, 52);
+  reassess(newModel);
+  setHistory([...history, newModel]);
+  console.log("$", history);
+ }
+
+ function pressAddRow(rowNr: number) {
+  model.addRow(rowNr);
   console.log(model.cells);
   if (tool === 0) setTool(1);
   else setTool(0);
  }
- function pressAddCol() {
-  model.addColumn(model.cells[0].length);
+
+ function pressAddCol(colNr: number) {
+  model.addColumn(colNr);
   console.log(model.cells);
   if (tool === 0) setTool(1);
   else setTool(0);
  }
+
+ function pressDelCol(colNr: number) {
+  model.deleteColumn(colNr);
+  if (tool === 0) setTool(1);
+  else setTool(0);
+ }
+
+ function pressDelRow(rowNr: number) {
+  model.deleteRow(rowNr);
+  if (tool === 0) setTool(1);
+  else setTool(0);
+ }
+
+ function clearCell(x: number, y: number) {
+  model.cells[x][y].clear();
+  console.log(model.cells);
+  let newModel = Object.assign({}, model);
+  reassess(newModel);
+ }
+
+ function checkExpression(x: number, y: number) {
+  let value = model.cells[x][y].getCellContent()?.getContent();
+  console.log(value);
+  if (value.includes("SUM") || value.includes("AVERAGE")) {
+   let content = new RangeExpression(value, model);
+   model.cells[x][y].setCellContent(content);
+   console.log(model.cells[x][y]);
+   //let newModel = Object.assign({}, model);
+   reassess(new Spreadsheet(model.cells, 300, 52));
+   model.cells[x][y].getCellContent()?.getContent();
+  }
+  if (value.includes("REF")) {
+   model.cells[x][y].setCellContent(new CellReference(value, model));
+   console.log("@", model.cells);
+   model.cells[x][y].getCellContent()?.getContent();
+   reassess(new Spreadsheet(model.cells, 300, 52));
+  }
+ }
+
  function pressDeleteCol(key: number) {
   // calculatorModel.pressActionKey(key);
   // setDisplay(calculatorModel.display());
@@ -66,83 +149,107 @@ export default function SpreadsheetV() {
  function setCellVal(val: String) {
   // setDisplay(calculatorModel.display());
  }
- useEffect(() => {
-  // This effect will run after each state update
-  console.log("model has been updated");
-  reassess(model);
- }, [model, model.cells]);
+ //   useEffect(() => {
+ //     // This effect will run after each state update
+ //     console.log("model has been updated");
+ //     reassess(model);
+ //   }, [model, model.cells]);
 
  // below iterate over cell[][]
  return (
-  <div className="grid mx-2">
-   <div className="row col-12">
-    <div className="offset-9 float-end col-1 input-group my-2">
-     <div className="input-group-prepend">
-      <i className="fa fa-search m-1 my-3"></i>
+  <div>
+   <Nav undo={undo} />
+   <div className="grid mx-2">
+    <div className="row col-12">
+     <div className="offset-9 float-end col-1 input-group my-2">
+      <div className="input-group-prepend">
+       <i className="fa fa-search m-1 my-3"></i>
+      </div>
+      <input
+       type="text"
+       className="form-control m-1 "
+       id="inlineFormInputGroup"
+       placeholder="Search for ..."
+       value={searchValue} // Bind input value to state
+       onChange={(e) => setSearchValue(e.target.value)} // Handle input changes
+      />
      </div>
-     <input
-      type="text"
-      className="form-control m-1 "
-      id="inlineFormInputGroup"
-      placeholder="Search for ..."
-     />
     </div>
+    <div className="row col-12 mx-2">
+     <div className="container table-responsive row col">
+      <table className="table table-striped table-bordered function-keys py-1">
+       <thead>
+        <th className="text-center py-2 border"></th>
+        {model.cells[0].map((x, i) => (
+         <th className="text-center border">{numToLetter(i)}</th>
+        ))}
+       </thead>
+       <tbody>
+        {model.cells.map((val, x) => {
+         return (
+          <tr>
+           <th className="text-center pb-0">{x + 1}</th>
+
+           {val.map((cell, y) => {
+            const cellValue = cell.getCellContent()?.getContent();
+            const highlightStyle = isCellMatchingSearch(cellValue as string)
+             ? { backgroundColor: "lightblue" } // Apply highlighting style
+             : {};
+
+            return (
+             <td
+              className={"text-center p-0 cell"}
+              onContextMenu={(e) => {
+               e.preventDefault();
+               setPoints({
+                x: e.pageX,
+                y: e.pageY,
+               });
+              }}
+              style={highlightStyle}
+             >
+              <CellV
+               displayValue={cell.getCellContent()?.getContent()}
+               x={x}
+               y={y}
+               model={model}
+               reasses={reassess}
+               key={x + "-" + y}
+               updateCell={updateCell}
+               checkExpression={checkExpression}
+               pressAddRow={pressAddRow}
+               pressAddCol={pressAddCol}
+               pressDelRow={pressDelRow}
+               pressDelCol={pressDelCol}
+               clearCell={clearCell}
+              ></CellV>
+             </td>
+            );
+           })}
+          </tr>
+         );
+        })}
+       </tbody>
+      </table>
+     </div>
+     <div className="col-btn">
+      <button
+       className="btn btn-sm btn-dark mx-1 mt-1 "
+       title="add column"
+       onClick={() => pressAddCol(model.cells[0].length)}
+      >
+       <i className="fa fa-plus fs-5 pt-1"></i>
+      </button>
+     </div>
+    </div>
+    <button
+     className="btn btn-sm btn-dark mx-2"
+     title="add row"
+     onClick={() => pressAddRow(model.cells.length)}
+    >
+     <i className="fa fa-plus pt-1 fs-5"></i>
+    </button>
    </div>
-   <div className="row col-12 mx-2">
-    <div className="container table-responsive row col">
-     <table className="table table-striped table-bordered function-keys py-1">
-      <thead>
-       <th className="text-center py-2 border"></th>
-       {model.cells[0].map((x, i) => (
-        <th className="text-center border">{numToLetter(i)}</th>
-       ))}
-      </thead>
-      <tbody>
-       {model.cells.map((val, x) => {
-        return (
-         <tr>
-          <th className="text-center pb-0">{x + 1}</th>
-          {val.map((cell) => {
-           return (
-            <td
-             className="text-center p-0 cell"
-             onContextMenu={(e) => {
-              e.preventDefault();
-              setClicked(true);
-              setPoints({
-               x: e.pageX,
-               y: e.pageY,
-              });
-             }}
-            >
-             <CellV displayValue={cell.getCellContent()?.getContent()}></CellV>
-            </td>
-           );
-          })}
-         </tr>
-        );
-       })}
-      </tbody>
-     </table>
-    </div>
-    <div className="col-btn">
-     <button
-      className="btn btn-sm btn-dark mx-1 mt-1 "
-      title="add column"
-      onClick={() => pressAddCol()}
-     >
-      <i className="fa fa-plus fs-5 pt-1"></i>
-     </button>
-    </div>
-   </div>
-   <button
-    className="btn btn-sm btn-dark mx-2"
-    title="add row"
-    onClick={() => pressAddRow()}
-   >
-    <i className="fa fa-plus pt-1 fs-5"></i>
-   </button>
-   {clicked && <ContextMenu top={points.y} left={points.x} id="menu-menu" />}
   </div>
  );
 }
