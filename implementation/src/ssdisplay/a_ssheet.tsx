@@ -1,14 +1,39 @@
-import React, { useState, useEffect, useReducer } from "react";
+import React, { useState } from "react";
 import "./a_ss.css";
 import { CellV } from "./cell";
 import { Spreadsheet } from "../Spreadsheet";
-import { Cell } from "../Cell";
-import { ContextMenu } from "./styles";
+import { Cell } from "../model/Cell";
 import useContextMenu from "./useContextMenu";
 import { RangeExpression } from "../model/CellContent/RangeExpression";
 import { CellReference } from "../model/CellContent/CellReference";
 import { StringLiteral } from "../model/CellContent/StringLiteral";
 import { Nav } from "./a_nav";
+import {
+ Chart as ChartJS,
+ CategoryScale,
+ LinearScale,
+ BarElement,
+ Title,
+ Tooltip,
+ PointElement,
+ LineElement,
+ ArcElement,
+ RadialLinearScale,
+} from "chart.js";
+import { Chart } from "react-chartjs-2";
+import { DataRepresentation } from "../DataRepresentation";
+
+ChartJS.register(
+ CategoryScale,
+ RadialLinearScale,
+ ArcElement,
+ LinearScale,
+ BarElement,
+ PointElement,
+ LineElement,
+ Title,
+ Tooltip
+);
 
 // instead should pass the Spreadsheet in as a prop or value
 export default function SpreadsheetV() {
@@ -18,11 +43,12 @@ export default function SpreadsheetV() {
  const [model, reassess] = useState(new Spreadsheet(arrCells, 300, 52));
  const [tool, setTool] = useState(0);
  const [history, setHistory] = useState([model]);
+ const [charts, setCharts]: any[] = useState([]);
  // const [history, dispatch] = useReducer(historyReducer, []);
 
  function createCells(): Cell[][] {
   // Define the dimensions of the 2D array
-  const numRows = 25;
+  const numRows = 20;
   const numCols = 25;
 
   // Create a 2D array of cells
@@ -55,7 +81,7 @@ export default function SpreadsheetV() {
 
  // Function to check if a cell value matches the search input
  const isCellMatchingSearch = (cellValue: string) => {
-  if (searchValue != "") {
+  if (searchValue !== "") {
    return cellValue.toLowerCase().includes(searchValue.toLowerCase());
   }
   return false;
@@ -66,6 +92,43 @@ export default function SpreadsheetV() {
   reassess(new Spreadsheet(history[history.length - 2].cells, 300, 52));
   if (tool === 0) setTool(1);
   else setTool(0);
+ }
+ function makeGraph(graph: any) {
+  console.log(graph);
+
+  const dr: DataRepresentation = new DataRepresentation(
+   graph.start,
+   graph.end,
+   model
+  );
+  const vals2 = dr.getData();
+
+  const op = {
+   responsive: true,
+   plugins: {
+    legend: {
+     display: false,
+    },
+    title: {
+     display: true,
+     text: graph.title,
+    },
+   },
+  };
+
+  const dat = {
+   labels: ["", "", "", graph.xax, "", "", ""],
+   datasets: [
+    {
+     label: graph.yax,
+     data: vals2,
+     backgroundColor: "#98ebd4",
+    },
+   ],
+  };
+  const arrC = charts.map((e: any) => e);
+  arrC.push(<Chart type={graph.type} options={op} data={dat} />);
+  setCharts(arrC);
  }
 
  function updateCell(x: number, y: number, value: string) {
@@ -138,27 +201,10 @@ export default function SpreadsheetV() {
   }
  }
 
- function pressDeleteCol(key: number) {
-  // calculatorModel.pressActionKey(key);
-  // setDisplay(calculatorModel.display());
- }
- function pressDeleteRow(key: number) {
-  // calculatorModel.pressActionKey(key);
-  // setDisplay(calculatorModel.display());
- }
- function setCellVal(val: String) {
-  // setDisplay(calculatorModel.display());
- }
- //   useEffect(() => {
- //     // This effect will run after each state update
- //     console.log("model has been updated");
- //     reassess(model);
- //   }, [model, model.cells]);
-
  // below iterate over cell[][]
  return (
   <div>
-   <Nav undo={undo} />
+   <Nav undo={undo} makeGraph={makeGraph} />
    <div className="grid mx-2">
     <div className="row col-12">
      <div className="offset-9 float-end col-1 input-group my-2">
@@ -250,6 +296,9 @@ export default function SpreadsheetV() {
      <i className="fa fa-plus pt-1 fs-5"></i>
     </button>
    </div>
+   {charts.map((c: any, key: any) => {
+    return <div className="m-4 graph-contain">{c}</div>;
+   })}
   </div>
  );
 }
