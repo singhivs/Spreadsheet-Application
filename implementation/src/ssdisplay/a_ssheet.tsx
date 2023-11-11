@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import "./a_ss.css";
 import { CellV } from "./cell";
 import { Spreadsheet } from "../Spreadsheet";
-import { Cell } from "../model/Cell";
+import { Cell } from "../Cell";
 import useContextMenu from "./useContextMenu";
 import { RangeExpression } from "../model/CellContent/RangeExpression";
 import { CellReference } from "../model/CellContent/CellReference";
