@@ -10,6 +10,7 @@ describe("Spreadsheet setcell Functionality", () => {
   beforeEach(() => {
     // Setup  spreadsheet with some initial data for each test
     spreadsheet = new Spreadsheet([], 5, 5);
+    console.log(spreadsheet);
   });
 
   it("should set the content of a cell", () => {

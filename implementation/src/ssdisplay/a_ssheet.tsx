@@ -45,6 +45,7 @@ export default function SpreadsheetV() {
  const [history, setHistory] = useState([model]);
  const [charts, setCharts]: any[] = useState([]);
  // const [history, dispatch] = useReducer(historyReducer, []);
+  const [historyActiveIndex, setHistoryActiveIndex] = useState(0);
 
  function createCells(): Cell[][] {
   // Define the dimensions of the 2D array
@@ -87,12 +88,7 @@ export default function SpreadsheetV() {
   return false;
  };
 
- function undo() {
-  console.log("hello");
-  reassess(new Spreadsheet(history[history.length - 2].cells, 300, 52));
-  if (tool === 0) setTool(1);
-  else setTool(0);
- }
+
  function makeGraph(graph: any) {
   console.log(graph);
 
@@ -131,56 +127,117 @@ export default function SpreadsheetV() {
   setCharts(arrC);
  }
 
- function updateCell(x: number, y: number, value: string) {
-  // model.cells[x][y].getCellContent()?.setContent(value);
-  // console.log(model.cells);
-  // let newModel = Object.assign({}, model);
-  // reassess(newModel);
-  //const newModel = { ...model }; // Create a deep copy
-  if (model.cells[x][y].getCellContent() instanceof CellReference) {
-   model.cells[x][y].setCellContent(new StringLiteral(value));
-  } else {
-   model.cells[x][y].getCellContent()?.setContent(value);
+ function undo() {
+    console.log("undo", { historyActiveIndex, history });
+    if (historyActiveIndex > 0) {
+      const newIndex = historyActiveIndex - 1;
+      reassess(new Spreadsheet(history[newIndex].cells, 300, 52));
+      setHistoryActiveIndex(newIndex);
+    }
   }
-  console.log("abc", model.cells);
-  let newModel = new Spreadsheet(model.cells, 300, 52);
-  reassess(newModel);
-  setHistory([...history, newModel]);
-  console.log("$", history);
- }
 
- function pressAddRow(rowNr: number) {
-  model.addRow(rowNr);
-  console.log(model.cells);
-  if (tool === 0) setTool(1);
-  else setTool(0);
- }
+  function redo() {
+    if (historyActiveIndex < history.length - 1) {
+      const newIndex = historyActiveIndex + 1;
+      reassess(new Spreadsheet(history[newIndex].cells, 300, 52));
+      setHistoryActiveIndex(newIndex);
+    }
+  }
 
- function pressAddCol(colNr: number) {
-  model.addColumn(colNr);
-  console.log(model.cells);
-  if (tool === 0) setTool(1);
-  else setTool(0);
- }
+  function updateCell(x: number, y: number, value: string) {
+    // model.cells[x][y].getCellContent()?.setContent(value);
+    // console.log(model.cells);
+    // let newModel = Object.assign({}, model);
+    // reassess(newModel);
+    //const newModel = { ...model }; // Create a deep copy
 
- function pressDelCol(colNr: number) {
-  model.deleteColumn(colNr);
-  if (tool === 0) setTool(1);
-  else setTool(0);
- }
+    let newModel = new Spreadsheet(model.cells, 300, 52);
+    let newModelHistory = new Spreadsheet(model.cells, 300, 52);
 
- function pressDelRow(rowNr: number) {
-  model.deleteRow(rowNr);
-  if (tool === 0) setTool(1);
-  else setTool(0);
- }
+    if (newModel.cells[x][y].getCellContent() instanceof CellReference) {
+      newModel.cells[x][y].setCellContent(new StringLiteral(value));
+    } else {
+      newModel.cells[x][y].getCellContent()?.setContent(value);
+    }
+    const newHistory = [...history.slice(0, historyActiveIndex + 1), newModel];
+    console.log("astfastfastf");
 
- function clearCell(x: number, y: number) {
-  model.cells[x][y].clear();
-  console.log(model.cells);
-  let newModel = Object.assign({}, model);
-  reassess(newModel);
- }
+    setHistory(newHistory);
+    setHistoryActiveIndex(newHistory.length - 1);
+
+    reassess(newModel);
+    console.log("$", newHistory);
+  }
+
+  function pressAddRow(rowNr: number) {
+    model.addRow(rowNr);
+    console.log(model.cells);
+
+    let newModel = new Spreadsheet(model.cells, 300, 52);
+    const newHistory = [...history.slice(0, historyActiveIndex + 1), newModel];
+    //console.log("abc", model.cells);
+    setHistory(newHistory);
+    console.log("addrow");
+    setHistoryActiveIndex(newHistory.length - 1);
+
+    if (tool === 0) setTool(1);
+    else setTool(0);
+  }
+
+  function pressAddCol(colNr: number) {
+    model.addColumn(colNr);
+    console.log(model.cells);
+
+    let newModel = new Spreadsheet(model.cells, 300, 52);
+    const newHistory = [...history.slice(0, historyActiveIndex + 1), newModel];
+    //console.log("abc", model.cells);
+    console.log("addcol");
+    setHistory(newHistory);
+    setHistoryActiveIndex(newHistory.length - 1);
+
+    if (tool === 0) setTool(1);
+    else setTool(0);
+  }
+
+  function pressDelCol(colNr: number) {
+    model.deleteColumn(colNr);
+
+    let newModel = new Spreadsheet(model.cells, 300, 52);
+    const newHistory = [...history.slice(0, historyActiveIndex + 1), newModel];
+    //console.log("abc", model.cells);
+    console.log("delcol");
+    setHistory(newHistory);
+    setHistoryActiveIndex(newHistory.length - 1);
+
+    if (tool === 0) setTool(1);
+    else setTool(0);
+  }
+
+  function pressDelRow(rowNr: number) {
+    model.deleteRow(rowNr);
+
+    let newModel = new Spreadsheet(model.cells, 300, 52);
+    const newHistory = [...history.slice(0, historyActiveIndex + 1), newModel];
+    //console.log("abc", model.cells);
+    console.log("delrow");
+    setHistory(newHistory);
+    setHistoryActiveIndex(newHistory.length - 1);
+
+    if (tool === 0) setTool(1);
+    else setTool(0);
+  }
+
+  function clearCell(x: number, y: number) {
+    let newModel = new Spreadsheet(model.cells, 300, 52);
+    newModel.cells[x][y] = new Cell(new StringLiteral(""), x, y);
+
+    reassess(newModel);
+    console.log("clear new model", newModel);
+
+    const newHistory = [...history.slice(0, historyActiveIndex + 1), newModel];
+    setHistory(newHistory);
+    setHistoryActiveIndex(newHistory.length - 1);
+  }
 
  function checkExpression(x: number, y: number) {
   let value = model.cells[x][y].getCellContent()?.getContent();
@@ -204,7 +261,7 @@ export default function SpreadsheetV() {
  // below iterate over cell[][]
  return (
   <div>
-   <Nav undo={undo} makeGraph={makeGraph} />
+   <Nav undo={undo} redo={redo} makeGraph={makeGraph} />
    <div className="grid mx-2">
     <div className="row col-12">
      <div className="offset-9 float-end col-1 input-group my-2">

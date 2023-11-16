@@ -48,6 +48,7 @@ export function Nav(props: any) {
       type="button"
       title="redo"
       className="rounded float-start px-2 py-1 fs-6"
+      onClick={props.redo}
      >
       <i className="fa fa-redo"></i>
      </button>

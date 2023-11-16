@@ -19,6 +19,9 @@ export class CellReference implements CellContent {
     //       eg: have the user input a letter for the col like in Excel
     //           or have them input literally "rownum,colnum"
   }
+  getContentString(): string {
+    throw new Error("Method not implemented.");
+  }
 
   /*
    * Returns the content of the cell in string form.
@@ -53,7 +56,6 @@ export class CellReference implements CellContent {
     if (!match) {
       throw new Error("Invalid cell reference format.");
     }
-    console.log("%%", match);
     const cellReference = match[1];
 
     // Split the cell reference into row and column parts

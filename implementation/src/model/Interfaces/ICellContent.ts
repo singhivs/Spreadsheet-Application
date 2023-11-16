@@ -6,7 +6,8 @@ export interface CellContent {
     * Returns the content of the cell in string form.
     */
     getContent(): string;
- 
+
+    getContentString(): string 
  
     /*
     * Changes the value of the cell to the given newval argument.

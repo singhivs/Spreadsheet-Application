@@ -34,9 +34,11 @@ export class RangeExpression implements CellContent {
   }
 
   private evaluateRangeExpression(): string {
+    if(this.val == null) {
+      throw new Error("Invalid range expression.");
+    }
     // Parse the range expression, e.g., "SUM(A1:B2)" or "AVERAGE(A1:B2)"
     const match = this.val.match(/(SUM|AVERAGE)\(([^)]+)\)/);
-    console.log(match);
     if (!match) {
       // Check for unsupported operations first
       if (!this.val.match(/\b(SUM|AVERAGE)\b/)) {
@@ -83,6 +85,10 @@ export class RangeExpression implements CellContent {
    */
   public getContent(): string {
     return this.evaluateRangeExpression();
+  }
+
+  public getContentString(): string {
+    return this.val;
   }
 
   /*

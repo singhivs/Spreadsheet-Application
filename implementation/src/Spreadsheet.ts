@@ -22,7 +22,11 @@ export class Spreadsheet {
   public constructor(cells: Cell[][], maxRow: number, maxCol: number) {
     this.maxRow = maxRow;
     this.maxCol = maxCol;
-    this.cells = cells;
+    if (cells.length == 0) {
+      this.cells = this.initializeCells();
+    } else {
+      this.cells = cells;
+    }
   }
 
   private initializeCells() {
@@ -34,7 +38,6 @@ export class Spreadsheet {
         cells[row][col] = new Cell(defaultContent, row, col);
       }
     }
-    console.log(cells);
     return cells;
   }
 
@@ -42,8 +45,8 @@ export class Spreadsheet {
    * Method to add a new row to the spreadsheet.
    */
   public addRow(index: number): void {
-    // First, check if the rowIndex is within the bounds of the current spreadsheet
-    if (index < 0 || index > this.cells.length) {
+     // First, check if the rowIndex is within the bounds of the current spreadsheet
+     if (index < 0 || index > this.cells.length) {
       throw new Error("Row index out of bounds");
     }
 
@@ -71,10 +74,7 @@ export class Spreadsheet {
     // Update range expressions
     this.updateRangeExpressionsForRowChange(index, "delete");
   }
-
-  /**
-   * Method to add a new column to the spreadsheet.
-   */
+ 
   public addColumn(index: number): void {
     // Check if columnIndex is within the bounds
     if (index < 0 || index > this.maxCol) {
@@ -96,7 +96,7 @@ export class Spreadsheet {
   /**
    * Method to delete a row from the spreadsheet based on the provided index.
    */
-  public deleteRow(index: number): void {
+   public deleteRow(index: number): void {
     // Check if rowIndex is within the bounds
     if (index < 0 || index >= this.maxRow) {
       throw new Error("Row index out of bounds.");
@@ -109,10 +109,11 @@ export class Spreadsheet {
     this.updateRangeExpressionsForRowChange(index, "delete");
   }
 
+
   /**
    * Method to delete a column from the spreadsheet based on the provided index.
    */
-  public deleteColumn(index: number): void {
+   public deleteColumn(index: number): void {
     // Check if columnIndex is within the bounds
     if (index < 0 || index >= this.maxCol) {
       throw new Error("Column index out of bounds.");
@@ -153,7 +154,6 @@ export class Spreadsheet {
    * Method to set the content of a cell at the specified row and column.
    */
   public setCell(row: number, col: number, content: CellContent): void {
-    console.log(String(this.cells[row][col]));
     // Check if the row and col are within the bounds of the spreadsheet
     if (row >= 0 && row < this.maxRow && col >= 0 && col < this.maxCol) {
       this.cells[row][col].setCellContent(content);
@@ -232,9 +232,9 @@ export class Spreadsheet {
     this.cells.forEach((row, i) => {
       row.forEach((cell, j) => {
         if (cell.getCellContent() instanceof RangeExpression) {
-          let rangeExpression = cell.getCellContent() as RangeExpression;
+          let rangeExpression = cell.getCellContent();
           let updatedExpression = this.updateRangeExpression(
-            rangeExpression.getContent(),
+            rangeExpression.getContentString(),
             rowIndex,
             null,
             changeType
@@ -252,9 +252,9 @@ export class Spreadsheet {
     this.cells.forEach((row, i) => {
       row.forEach((cell, j) => {
         if (cell.getCellContent() instanceof RangeExpression) {
-          let rangeExpression = cell.getCellContent() as RangeExpression;
+          let rangeExpression = cell.getCellContent();
           let updatedExpression = this.updateRangeExpression(
-            rangeExpression.getContent(),
+            rangeExpression.getContentString(),
             null,
             columnIndex,
             changeType
@@ -265,83 +265,104 @@ export class Spreadsheet {
     });
   }
 
-  private updateRangeExpression(
-    expression: string,
-    rowIndex: number | null,
-    columnIndex: number | null,
-    changeType: "add" | "delete"
-  ): string {
-    // Parse the range expression to find the affected ranges
-    const rangeRegex = /([A-Z]+)(\d+):([A-Z]+)(\d+)/;
-    const match = expression.match(rangeRegex);
-    if (!match) return expression; // If no range is found, return the expression as is
-
-    let [_, startCol, startRow, endCol, endRow] = match;
-    let startRowIndex = parseInt(startRow) - 1; // Convert to zero-based index
-    let endRowIndex = parseInt(endRow) - 1; // Convert to zero-based index
-    let startColIndex = this.columnToIndex(startCol);
-    let endColIndex = this.columnToIndex(endCol);
-
-    // Update the range based on the type of change
-    if (rowIndex !== null) {
-      if (changeType === "add") {
-        if (rowIndex <= startRowIndex) {
-          startRowIndex += 1;
-        }
-        if (rowIndex <= endRowIndex) {
-          endRowIndex += 1;
-        }
-      } else {
-        // 'delete'
-        if (rowIndex < startRowIndex) {
-          startRowIndex -= 1;
-        } else if (rowIndex === startRowIndex) {
-          startRowIndex = Math.min(startRowIndex, endRowIndex - 1);
-        }
-
-        if (rowIndex < endRowIndex) {
-          endRowIndex -= 1;
-        } else if (rowIndex === endRowIndex) {
-          endRowIndex = Math.max(endRowIndex, startRowIndex + 1);
-        }
-      }
+  private getCellCoordinates(cell: string): [string, string] | null {
+    const col = cell.match(/[A-Z]+/)?.[0];
+    const row = cell.match(/\d+/)?.[0];
+    if (col === undefined || row === undefined) {
+      return null;
     }
-
-    if (columnIndex !== null) {
-      if (changeType === "add") {
-        if (columnIndex <= startColIndex) {
-          startColIndex += 1;
-        }
-        if (columnIndex <= endColIndex) {
-          endColIndex += 1;
-        }
-      } else {
-        // 'delete'
-        if (columnIndex < startColIndex) {
-          startColIndex -= 1;
-        } else if (columnIndex === startColIndex) {
-          startColIndex = Math.min(startColIndex, endColIndex - 1);
-        }
-
-        if (columnIndex < endColIndex) {
-          endColIndex -= 1;
-        } else if (columnIndex === endColIndex) {
-          endColIndex = Math.max(endColIndex, startColIndex + 1);
-        }
-      }
-    }
-
-    // Reconstruct the range expression with the updated indices
-    startRow = (startRowIndex + 1).toString();
-    endRow = (endRowIndex + 1).toString();
-    startCol = this.indexToColumn(startColIndex);
-    endCol = this.indexToColumn(endColIndex);
-
-    return `${match[1].slice(
-      0,
-      -startRow.length
-    )}${startCol}${startRow}:${endCol}${endRow}`;
+    return [col, row];
   }
+
+private updateRangeExpression(
+  expression: string,
+  rowIndex: number | null,
+  columnIndex: number | null,
+  changeType: "add" | "delete"
+): string {
+  // Parse the range expression to find the affected ranges
+  const rangeRegex = /(SUM|AVERAGE)\(([A-Z]+\d+:[A-Z]+\d+)\)/;
+  const match = expression.match(rangeRegex);
+  if (!match) return expression; // If no range is found, return the expression as is
+
+  const [, funcName, range] = match;
+
+  // Use optional chaining to safely access properties and methods
+  const cellCoordinates = this.getCellCoordinates(range);
+  if (!cellCoordinates) {
+    return expression;
+  }
+
+  const [startCell, endCell] = cellCoordinates;
+  const [startCol, startRow] = startCell.split(':') ?? [];
+  const [endCol, endRow] = endCell.split(':') ?? [];
+
+  // Check if any of the values is undefined before using them
+  if (startCol === undefined || startRow === undefined || endCol === undefined || endRow === undefined) {
+    return expression;
+  }let startRowIndex = parseInt(startRow);let endRowIndex = parseInt(endRow);let startColIndex = this.columnToIndex(startCol);let endColIndex = this.columnToIndex(endCol);
+
+  // Update the range based on the type of change (add or delete)
+  if (rowIndex !== null) {
+    if (changeType === "add") {
+      // Increment row indices if the added row is at or above the start of the range
+      if (rowIndex <= startRowIndex) {
+        startRowIndex += 1;
+      }
+      if (rowIndex <= endRowIndex) {
+        endRowIndex += 1;
+      }
+    } else {
+      // Decrement row indices if the deleted row is within the range
+      if (rowIndex === startRowIndex && rowIndex === endRowIndex) {
+        startRowIndex += 1;
+        endRowIndex += 1;
+      } else if (rowIndex >= startRowIndex && rowIndex <= endRowIndex) {
+        // Remove the entire range if the deleted row is part of it
+        return `${funcName}()`;
+      } else if (rowIndex < startRowIndex) {
+        startRowIndex -= 1;
+      } else if (rowIndex < endRowIndex) {
+        endRowIndex -= 1;
+      }
+    }
+  }
+
+  if (columnIndex !== null) {
+    if (changeType === "add") {
+      // Increment column indices if the added column is at or before the start of the range
+      if (columnIndex <= startColIndex) {
+        startColIndex += 1;
+      }
+      if (columnIndex <= endColIndex) {
+        endColIndex += 1;
+      }
+    } else {
+      // Decrement column indices if the deleted column is within the range
+      if (columnIndex === startColIndex && columnIndex === endColIndex) {
+        startColIndex += 1;
+        endColIndex += 1;
+      } else if (columnIndex >= startColIndex && columnIndex <= endColIndex) {
+        // Remove the entire range if the deleted column is part of it
+        return `${funcName}()`;
+      } else if (columnIndex < startColIndex) {
+        startColIndex -= 1;
+      } else if (columnIndex < endColIndex) {
+        endColIndex -= 1;
+      }
+    }
+  }
+
+  // Reconstruct the updated range expression
+  const updatedStartRow = startRowIndex.toString();
+  const updatedEndRow = endRowIndex.toString();
+  const updatedStartCol = this.indexToColumn(startColIndex);
+  const updatedEndCol = this.indexToColumn(endColIndex);
+  const updatedRange = `${updatedStartCol}${updatedStartRow}:${updatedEndCol}${updatedEndRow}`;
+
+  // Construct and return the updated range expression with the function name
+  return `${funcName}(${updatedRange})`;
+}
 
   private columnToIndex(column: string): number {
     let sum = 0;

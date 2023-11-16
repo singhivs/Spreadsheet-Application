@@ -16,6 +16,9 @@ export class Formula implements CellContent {
         // to store the result of the formula
         this.val = val;
     }
+    getContentString(): string {
+        throw new Error("Method not implemented.");
+    }
  
  
     /*

@@ -14,6 +14,9 @@ export class StringLiteral implements CellContent {
     public constructor(val: string) {
         this.val = val;
     }
+    getContentString(): string {
+        throw new Error("Method not implemented.");
+    }
  
     /*
     * Returns the content of the cell in string form.
