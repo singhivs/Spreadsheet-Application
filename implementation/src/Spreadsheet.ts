@@ -3,6 +3,7 @@ import { NumericLiteral } from "./model/CellContent/NumericalLiteral";
 import { RangeExpression } from "./model/CellContent/RangeExpression";
 import { StringLiteral } from "./model/CellContent/StringLiteral";
 import { CellContent } from "./model/Interfaces/ICellContent";
+import cloneDeep from "lodash/cloneDeep";
 
 /**
  * Spreadsheet class manages a 2D array of cells and provides functionalities
@@ -25,7 +26,7 @@ export class Spreadsheet {
     if (cells.length == 0) {
       this.cells = this.initializeCells();
     } else {
-      this.cells = cells;
+      this.cells = cloneDeep(cells);
     }
   }
 
