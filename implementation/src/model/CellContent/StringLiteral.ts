@@ -15,7 +15,7 @@ export class StringLiteral implements CellContent {
         this.val = val;
     }
     getContentString(): string {
-        throw new Error("Method not implemented.");
+        return this.val;
     }
  
     /*

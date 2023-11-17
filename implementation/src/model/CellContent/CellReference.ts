@@ -20,7 +20,7 @@ export class CellReference implements CellContent {
     //           or have them input literally "rownum,colnum"
   }
   getContentString(): string {
-    throw new Error("Method not implemented.");
+    return this.val;
   }
 
   /*

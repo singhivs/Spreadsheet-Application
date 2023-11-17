@@ -20,34 +20,37 @@ interface IProps {
 
 export function CellV(props: IProps) {
   const [clicked, setClicked] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement | null>(null); // Specify the type explicitly
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    // Add a click event listener to the document
     const handleClickOutside = (event: MouseEvent) => {
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node)
       ) {
-        // Click is outside the dropdown, close it
         setClicked(false);
       }
     };
 
-    // Attach the event listener
     document.addEventListener("mousedown", handleClickOutside);
 
-    // Clean up the event listener when the component unmounts
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []); // Missing comma here
+  }, []);
 
   const handleDropdownItemClick = () => {
-    // Handle click on a dropdown item here
-    // Close the dropdown by setting clicked state to false
     setClicked(false);
   };
+
+  function handleValueChange(newValue: string) {
+    try {
+      // Handle your value change logic here
+      props.updateCell(props.x, props.y, newValue);
+    } catch (error) {
+      console.error("Error while updating cell value:", error);
+    }
+  }
 
   return (
     <div className="flex">
@@ -56,15 +59,17 @@ export function CellV(props: IProps) {
         value={props.displayValue}
         onClick={() => setClicked(true)}
         onChange={(e) => {
-          console.log(e.target.value);
-          props.updateCell(props.x, props.y, e.target.value);
+          handleValueChange(e.target.value);
         }}
         onKeyDown={(event) => {
           if (event.key === "Enter") {
-            props.checkExpression(props.x, props.y);
+            try {
+              props.checkExpression(props.x, props.y);
+            } catch (error) {
+              console.error("Error while checking expression:", error);
+            }
           }
         }}
-        //onBlur={props.checkExpression(props.x, props.y)}
       />
       {clicked && (
         <div ref={dropdownRef}>
@@ -73,20 +78,19 @@ export function CellV(props: IProps) {
             y={props.y}
             id="menu-menu"
             addRow={(x: number) => {
-              console.log(x);
-              handleDropdownItemClick(); // Handle click and close dropdown
+              handleDropdownItemClick();
               props.pressAddRow(x);
             }}
             addCol={(x: number) => {
-              handleDropdownItemClick(); // Handle click and close dropdown
+              handleDropdownItemClick();
               props.pressAddCol(x);
             }}
             delCol={(x: number) => {
-              handleDropdownItemClick(); // Handle click and close dropdown
+              handleDropdownItemClick();
               props.pressDelCol(x);
             }}
             delRow={(x: number) => {
-              handleDropdownItemClick(); // Handle click and close dropdown
+              handleDropdownItemClick();
               props.pressDelRow(x);
             }}
             clearCell={() => {

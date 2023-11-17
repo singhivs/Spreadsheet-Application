@@ -25,7 +25,6 @@ import {
 import { Chart } from "react-chartjs-2";
 import { DataRepresentation } from "../DataRepresentation";
 import { isElementOfType } from "react-dom/test-utils";
-import ErrorBoundary from "./error_boundary";
 
 ChartJS.register(
   CategoryScale,
@@ -51,7 +50,7 @@ export default function SpreadsheetV() {
   // const [history, dispatch] = useReducer(historyReducer, []);
   const [historyActiveIndex, setHistoryActiveIndex] = useState(0);
   const [errorMessage, setErrorMessage] = React.useState("");
-  const [interactionDisabled, setInteractionDisabled] = React.useState(false);
+  const [errorOccurred, setErrorOccurred] = React.useState(false);
 
   useEffect(() => {
     // Attach an event listener to the "Close" button within the ErrorBoundary
@@ -182,7 +181,7 @@ export default function SpreadsheetV() {
       newModel.cells[x][y].getCellContent()?.setContent(value);
     }
     const newHistory = [...history.slice(0, historyActiveIndex + 1), newModel];
-    console.log("astfastfastf");
+
 
     setHistory(newHistory);
     setHistoryActiveIndex(newHistory.length - 1);
@@ -262,14 +261,13 @@ export default function SpreadsheetV() {
   }
 
   function checkExpression(x: number, y: number) {
+    try {
       let value = model.cells[x][y].getCellContent()?.getContent();
-      console.log(value);
       if (value.includes("SUM") || value.includes("AVERAGE")) {
         let content = new RangeExpression(value, model);
         model.cells[x][y].setCellContent(content);
-        console.log(model.cells[x][y]);
-        //let newModel = Object.assign({}, model);
         reassess(new Spreadsheet(model.cells, 300, 52));
+
         model.cells[x][y].getCellContent()?.getContent();
       }
       if (value.includes("REF")) {
@@ -278,31 +276,33 @@ export default function SpreadsheetV() {
         model.cells[x][y].getCellContent()?.getContent();
         reassess(new Spreadsheet(model.cells, 300, 52));
       }
-
+    }
+    catch (e: any) {
+      console.log(e.message);
+      setErrorMessage(e.message);
+      setErrorOccurred(true);
+    }
   }
-
-  // function showErrorPopup(errorMessage: string) {
-  //   reassess(new Spreadsheet(model.cells, 300, 52));
-  //   setErrorMessage(errorMessage); // Update the error message state
-  //   setInteractionDisabled(true); // Disable user interactions
-  // }
 
   function hideErrorPopup() {
-    setErrorMessage(""); // Clear the error message state
-    setInteractionDisabled(false); // Enable user interactions
+    const newIndex = historyActiveIndex-1;
+    console.log("history new index", history[newIndex]);
+    reassess(new Spreadsheet(history[newIndex].cells, 300, 52));
+    setErrorMessage("");
+    setErrorOccurred(false);
   }
-
-  // // Attach an event listener to the "Close" button
-  // const closeButton = document.getElementById("close-error-button");
-
-  // if (closeButton) {
-  //   closeButton.addEventListener("click", hideErrorPopup);
-  // }
-
 
   // below iterate over cell[][]
   return (
     <div>
+      {errorOccurred && (
+        <div id="error-popup" className="error-popup">
+          <span id="error-message">{errorMessage}</span>
+          <button id="close-error-button" onClick={hideErrorPopup}>
+            Close
+          </button>
+        </div>
+      )}
       <Nav undo={undo} redo={redo} makeGraph={makeGraph} />
       <div className="grid mx-2">
         <div className="row col-12">
@@ -334,13 +334,11 @@ export default function SpreadsheetV() {
                   return (
                     <tr>
                       <th className="text-center pb-0">{x + 1}</th>
-
                       {val.map((cell, y) => {
-                        const cellValue = cell.getCellContent()?.getContent();
+                        const cellValue = cell.getCellContent()?.getContentString();
                         const highlightStyle = isCellMatchingSearch(cellValue as string)
                           ? { backgroundColor: "lightblue" } // Apply highlighting style
                           : {};
-
                         return (
                           <td
                             className={"text-center p-0 cell"}
@@ -353,36 +351,28 @@ export default function SpreadsheetV() {
                             }}
                             style={highlightStyle}
                           >
-                            <ErrorBoundary
-                              key={x + "-" + y}
-                              onClose={hideErrorPopup}
-                            >
-                              <CellV
-                                displayValue={cell.getCellContent()?.getContent()}
-                                x={x}
-                                y={y}
-                                model={model}
-                                reasses={reassess}
-                                updateCell={updateCell}
-                                checkExpression={checkExpression}
-                                pressAddRow={pressAddRow}
-                                pressAddCol={pressAddCol}
-                                pressDelRow={pressDelRow}
-                                pressDelCol={pressDelCol}
-                                clearCell={clearCell}
-                              />
-                            </ErrorBoundary>
-                            {/* {errorMessage && (
-                              <div id="error-popup" className="error-popup">
-                                <span id="error-message">{errorMessage}</span>
-                                <button id="close-error-button" onClick={hideErrorPopup}>
-                                  Close
-                                </button>
-                              </div>
-                            )} */}
-                            {interactionDisabled && (
-                              <div className="interaction-overlay"></div>
-                            )}
+                            {(() => {
+                              try {
+                                return (
+                                  <CellV
+                                    displayValue={cell.getCellContent()?.getContent()}
+                                    x={x}
+                                    y={y}
+                                    model={model}
+                                    reasses={reassess}
+                                    updateCell={updateCell}
+                                    checkExpression={checkExpression}
+                                    pressAddRow={pressAddRow}
+                                    pressAddCol={pressAddCol}
+                                    pressDelRow={pressDelRow}
+                                    pressDelCol={pressDelCol}
+                                    clearCell={clearCell}
+                                  />
+                                );
+                              } catch (error: any) {
+                                console.error("Error:", error.message);
+                              }
+                            })()}
                           </td>
                         );
                       })}
