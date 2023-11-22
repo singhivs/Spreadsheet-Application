@@ -59,8 +59,9 @@ export function Nav(props: any) {
      </Link>
      <button
       type="button"
-      title="save version"
+      title="save sheet to file"
       className="rounded float-end px-2 py-1 fs-6 mx-2"
+      onClick={props.save}
      >
       <i className="fa fa-download"></i>
      </button>

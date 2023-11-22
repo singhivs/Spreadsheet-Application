@@ -20,6 +20,6 @@
   "noFallthroughCasesInSwitch": true,
   "jsx": "react-jsx"
  },
- "include": ["**/*.ts", "src"],
+ "include": ["**/*.ts", "src", "implementation/src/sheet.test.tsx"],
  "exclude": ["node_modules/*", "**/*.js"]
 }

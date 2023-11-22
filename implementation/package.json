@@ -1,5 +1,5 @@
 {
- "name": "calculator",
+ "name": "spreadsheet",
  "version": "0.1.0",
  "private": true,
  "dependencies": {
@@ -68,5 +68,10 @@
  "resolutions": {
   "@types/react": "17.0.14",
   "@types/react-dom": "17.0.14"
+ },
+ "browser": {
+  "fs": false,
+  "path": false,
+  "os": false
  }
 }
