@@ -28,20 +28,22 @@ export default function Help() {
     className="px-4 pt-4 display-linebreak"
     style={{ whiteSpace: "pre-line" }}
    >
-    {"initial you can put in numbers and strings and mathematical formulas... "}
-    <p className="m-0 p-0">{"cell references work like REF(A4) "}</p>
-    {"range expressions work like SUM(A1:A4) or AVG(A1:A4) blah blah blah"}
+    {"In the cells, users can enter numbers, strings, and formulas"}
+    <p className="m-0 p-0">
+     {"Users can also add cell references – like REF(A4) "}
+    </p>
+    {"Users can also add range expressions – like SUM(A1:A4) or AVG(A1:A4)"}
     <p className="m-0 p-0">
      {
-      "you can also immediately clear a cell by clicking on it and choosing the clear cell option in the context menu"
+      "Users may also immediately clear a cell by clicking on it and choosing the clear cell option in the context menu"
      }
     </p>
-    {"there is a maximum number of rows and columns that you may not exceed"}
+    {"There is a maximum number of rows and columns that you may not exceed"}
    </div>
    <div className="px-4 pt-4">
     <strong>Adding Rows/Columns</strong>
     <div>
-     the buttons at the top right and bottom left as well as after you click on
+     The buttons at the top right and bottom left as well as after you click on
      a cell you can add a row/column in any of the directly adjacent directions
     </div>
    </div>
@@ -49,20 +51,23 @@ export default function Help() {
     {" "}
     <strong>Deleting Rows/Columns</strong>
     <div>
-     click on a cell in the row or column that you wan tot delet and choose the
+     Click on a cell in the row or column that you wan tot delet and choose the
      delet option in the context menu
     </div>
    </div>
    <div className="px-4 pt-4">
     {" "}
     <strong>Searching</strong>
-    <div>description</div>
+    <div>
+     Typing an entry into the search bar will highlight all cells containing the
+     eentered value
+    </div>
    </div>
    <div className="px-4 pt-4">
     {" "}
     <strong>Creating Charts</strong>
     <div>
-     click on the chart button in the navigation menu enter the reference for
+     Click on the chart button in the navigation menu enter the reference for
      the starting cell and ending cell. Cells will be displayed as a graph of
      your choosing in which all data points are displayed in order
     </div>
@@ -70,12 +75,18 @@ export default function Help() {
    <div className="px-4 pt-4">
     {" "}
     <strong>Undo/Redo</strong>
-    <div>description</div>
+    <div>
+     Hitting the undo and redo buttons will undo or redo the most recent actions
+     made by the user in the spreadsheet
+    </div>
    </div>
    <div className="px-4 pt-4">
     {" "}
-    <strong>Version History</strong>
-    <div>description</div>
+    <strong>Saving</strong>
+    <div>
+     Clicking the save button at the top right in the nav bar will save a CSV
+     file of the current spreadsheet
+    </div>
    </div>
   </div>
  );

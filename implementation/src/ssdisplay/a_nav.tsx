@@ -11,7 +11,7 @@ export function Nav(props: any) {
   yax: "",
  });
 
- // cloase modal and reset values
+ // close modal and reset values
  function closeModal() {
   setVis(!vis);
   setGraph({
@@ -23,6 +23,7 @@ export function Nav(props: any) {
    yax: "",
   });
  }
+
  // create a graph
  function create() {
   props.makeGraph(graph);
@@ -34,8 +35,27 @@ export function Nav(props: any) {
    <div className="container py-3">
     <h5>
      <div className="float-start py-1 px-3 text-white ">
-      Spreadsheet App – 507
+      <div className="TitleBox">
+       {props.isEditingTitle ? (
+        <input
+         type="text"
+         value={props.spreadsheetTitle}
+         className="form-control"
+         onChange={(e) => props.handleTitleChange(e.target.value)}
+        />
+       ) : (
+        <div>{props.spreadsheetTitle}</div>
+       )}
+      </div>
      </div>
+     <button
+      className="rounded float-start px-2 py-1 fs-6"
+      onClick={
+       props.isEditingTitle ? props.handleSaveTitle : props.handleEditTitle
+      }
+     >
+      {props.isEditingTitle ? "Save" : "Edit"}
+     </button>
      <button
       type="button"
       title="undo"
@@ -65,19 +85,10 @@ export function Nav(props: any) {
      >
       <i className="fa fa-download"></i>
      </button>
-     <Link className="nav-link black-" to="/history">
-      <button
-       type="button"
-       title="view versions"
-       className="rounded float-end px-2 py-1 fs-6"
-      >
-       <i className="fa fa-floppy-disk"></i>
-      </button>
-     </Link>
      <button
       type="button"
       title="create chart"
-      className="rounded float-end px-2 py-1 fs-6 mx-2"
+      className="rounded float-end px-2 py-1 fs-6 "
       onClick={() => setVis(!vis)}
      >
       <i className="fa fa-chart-simple"></i>
