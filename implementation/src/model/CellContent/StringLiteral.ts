@@ -1,36 +1,36 @@
 import { CellContent } from "../Interfaces/ICellContent";
 
 /*
-* CellContent that represents a string literal.
-*/
+ * CellContent that represents a string literal.
+ */
 export class StringLiteral implements CellContent {
-  
-    private val: string; // the content of the string literal
- 
- 
-    /**
-     * Constructor to initialize the string literal with the given value.
-     */
-    public constructor(val: string) {
-        this.val = val;
-    }
-    getContentString(): string {
-        return this.val;
-    }
- 
-    /*
-    * Returns the content of the cell in string form.
-    */
-    public getContent(): string {
-        return this.val;
-    }
- 
-    /*
-    * Changes the value of the cell to the given newval argument.
-    */
-    public setContent(newval: string): void {
-        this.val = newval;
-    }
- 
- 
- }
+  private val: string; // the content of the string literal
+
+  /**
+   * Constructor to initialize the string literal with the given value.
+   */
+  public constructor(val: string) {
+    this.val = val;
+  }
+
+  /*
+   * Returns the string that represents the user input.
+   */
+  getContentString(): string {
+    return this.val;
+  }
+
+  /*
+   * Returns the content of the cell in string form.
+   */
+  public getContent(): string {
+    return this.val;
+  }
+
+  /*
+   * Changes the value of the cell to the given newval argument.
+   */
+  public setContent(newval: string): void {
+    this.val = newval;
+  }
+}

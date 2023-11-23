@@ -2,9 +2,7 @@ export const MenuContextContainer = <div></div>;
 export function ContextMenu(props) {
   let t = props.top + "px";
   let l = props.left + "px";
-  console.log(t + " : " + l);
-  //  document.getElementById("menumenu").style.top = t;
-  //  document.getElementById("menumenu").style.left = l;
+
   return (
     <div style={{ top: t, left: l }} className="menu" id="menumenu">
       <ul class="list-group">

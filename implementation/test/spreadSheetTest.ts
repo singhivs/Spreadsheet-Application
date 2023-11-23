@@ -1,8 +1,8 @@
-import { Cell } from "./Cell";
-import { RangeExpression } from "./model/CellContent/RangeExpression";
-import { StringLiteral } from "./model/CellContent/StringLiteral";
-import { CellContent } from "./model/Interfaces/ICellContent";
-import { Spreadsheet } from "./Spreadsheet";
+import { Cell } from "../src/model/Cell";
+import { RangeExpression } from "../src/model/CellContent/RangeExpression";
+import { StringLiteral } from "../src/model/CellContent/StringLiteral";
+import { CellContent } from "../src/model/Interfaces/ICellContent";
+import { Spreadsheet } from "../src/model/Spreadsheet";
 
 describe("Spreadsheet setcell Functionality", () => {
   let spreadsheet: Spreadsheet;
@@ -10,7 +10,6 @@ describe("Spreadsheet setcell Functionality", () => {
   beforeEach(() => {
     // Setup  spreadsheet with some initial data for each test
     spreadsheet = new Spreadsheet([], 5, 5);
-    console.log(spreadsheet);
   });
 
   it("should set the content of a cell", () => {

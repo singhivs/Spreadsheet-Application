@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import "./a_ss.css";
 import { CellV } from "./cell";
-import { Spreadsheet } from "../Spreadsheet";
-import { Cell } from "../Cell";
+import { Spreadsheet } from "../model/Spreadsheet";
+import { Cell } from "../model/Cell";
 import useContextMenu from "./useContextMenu";
 import { RangeExpression } from "../model/CellContent/RangeExpression";
 import { CellReference } from "../model/CellContent/CellReference";
@@ -21,9 +21,12 @@ import {
  ArcElement,
  RadialLinearScale,
 } from "chart.js";
+
 import { Chart } from "react-chartjs-2";
-import { DataRepresentation } from "../DataRepresentation";
+import { DataRepresentation } from "../model/DataRepresentation";
 import { isElementOfType } from "react-dom/test-utils";
+import { Formula } from "../model/CellContent/FormulaClass";
+import { NumericLiteral } from "../model/CellContent/NumericalLiteral";
 
 ChartJS.register(
  CategoryScale,
@@ -50,6 +53,42 @@ export default function SpreadsheetV() {
  const [historyActiveIndex, setHistoryActiveIndex] = useState(0);
  const [errorMessage, setErrorMessage] = React.useState("");
  const [errorOccurred, setErrorOccurred] = React.useState(false);
+ const [spreadsheetTitle, setSpreadsheetTitle] = useState(
+  "Your Spreadsheet Title"
+ );
+ const [isEditingTitle, setIsEditingTitle] = useState(false);
+ // const [history, dispatch] = useReducer(historyReducer, []);
+ const [currentDisplayVal, setCurrentDisplayVal] = useState(
+  new Cell(model.cells[0][0].getCellContent(), 0, 0)
+ );
+
+ const handleTitleChange = (newValue: string) => {
+  setSpreadsheetTitle(newValue);
+ };
+
+ const handleEditTitle = () => {
+  setIsEditingTitle(true);
+ };
+
+ const handleSaveTitle = () => {
+  setIsEditingTitle(false);
+ };
+
+ const firstVersion = {
+  date: new Date().toLocaleDateString(), // Use the current date
+  description: "First version", // Provide a description
+ };
+ const [versionHistory, setVersionHistory] = useState([firstVersion]);
+
+ function saveVersionToHistory() {
+  const newVersion = {
+   date: new Date().toLocaleDateString(), // Use the current date
+   description: "Description of the version", // Provide a description
+  };
+
+  // Update the history state with the new version
+  setVersionHistory([...versionHistory, newVersion]);
+ }
 
  useEffect(() => {
   // Attach an event listener to the "Close" button within the ErrorBoundary
@@ -107,7 +146,24 @@ export default function SpreadsheetV() {
   return false;
  };
 
+ function save() {
+  console.log("save");
+  const csv: string = model.retrieveVersion();
+  console.log(csv);
+
+  // 'a' element
+  const link = document.createElement("a");
+  const file = new Blob([csv], { type: "text/plain" });
+
+  link.href = URL.createObjectURL(file);
+  link.download = "spreadsheet.csv";
+  link.click();
+  URL.revokeObjectURL(link.href);
+ }
+
  function makeGraph(graph: any) {
+  console.log(graph);
+
   const dr: DataRepresentation = new DataRepresentation(
    graph.start,
    graph.end,
@@ -143,21 +199,6 @@ export default function SpreadsheetV() {
   setCharts(arrC);
  }
 
- function save() {
-  console.log("save");
-  const csv: string = model.retrieveVersion();
-  console.log(csv);
-
-  // 'a' element
-  const link = document.createElement("a");
-  const file = new Blob([csv], { type: "text/plain" });
-
-  link.href = URL.createObjectURL(file);
-  link.download = "spreadsheet.csv";
-  link.click();
-  URL.revokeObjectURL(link.href);
- }
-
  function undo() {
   console.log("undo", { historyActiveIndex, history });
   if (historyActiveIndex > 0) {
@@ -177,38 +218,46 @@ export default function SpreadsheetV() {
  }
 
  function updateCell(x: number, y: number, value: string) {
-  // model.cells[x][y].getCellContent()?.setContent(value);
-  // console.log(model.cells);
-  // let newModel = Object.assign({}, model);
-  // reassess(newModel);
-  //const newModel = { ...model }; // Create a deep copy
-
   let newModel = new Spreadsheet(model.cells, 300, 52);
   let newModelHistory = new Spreadsheet(model.cells, 300, 52);
 
-  if (newModel.cells[x][y].getCellContent() instanceof CellReference) {
-   newModel.cells[x][y].setCellContent(new StringLiteral(value));
+  if (
+   !(
+    newModel.cells[x][y].getCellContent() instanceof StringLiteral ||
+    newModel.cells[x][y].getCellContent() instanceof NumericLiteral
+   )
+  ) {
+   newModel.cells[x][y].setCellContent(
+    new StringLiteral(newModel.cells[x][y].getCellContent().getContentString())
+   );
   } else {
    newModel.cells[x][y].getCellContent()?.setContent(value);
   }
+
+  let newY = y + 1;
+  //if (!(newModel.cells[x][y].getCellContent() instanceof Formula)) {
+  reparse_ref(numToLetter(x) + newY, newModel);
+  //}
+
   const newHistory = [...history.slice(0, historyActiveIndex + 1), newModel];
 
   setHistory(newHistory);
   setHistoryActiveIndex(newHistory.length - 1);
 
   reassess(newModel);
-  console.log("$", newHistory);
+  setCurrentDisplayVal(new Cell(newModel.cells[x][y].getCellContent(), x, y));
  }
 
  function pressAddRow(rowNr: number) {
   model.addRow(rowNr);
-  // console.log(model.cells);
+  console.log(model.cells);
 
   let newModel = new Spreadsheet(model.cells, 300, 52);
+  reparse(newModel);
   const newHistory = [...history.slice(0, historyActiveIndex + 1), newModel];
   //console.log("abc", model.cells);
   setHistory(newHistory);
-  // console.log("addrow");
+  console.log("addrow");
   setHistoryActiveIndex(newHistory.length - 1);
 
   if (tool === 0) setTool(1);
@@ -217,9 +266,10 @@ export default function SpreadsheetV() {
 
  function pressAddCol(colNr: number) {
   model.addColumn(colNr);
-  // console.log(model.cells);
+  console.log(model.cells);
 
   let newModel = new Spreadsheet(model.cells, 300, 52);
+  reparse(newModel);
   const newHistory = [...history.slice(0, historyActiveIndex + 1), newModel];
   //console.log("abc", model.cells);
   console.log("addcol");
@@ -234,8 +284,8 @@ export default function SpreadsheetV() {
   model.deleteColumn(colNr);
 
   let newModel = new Spreadsheet(model.cells, 300, 52);
+  reparse(newModel);
   const newHistory = [...history.slice(0, historyActiveIndex + 1), newModel];
-  //console.log("abc", model.cells);
   console.log("delcol");
   setHistory(newHistory);
   setHistoryActiveIndex(newHistory.length - 1);
@@ -248,8 +298,8 @@ export default function SpreadsheetV() {
   model.deleteRow(rowNr);
 
   let newModel = new Spreadsheet(model.cells, 300, 52);
+  reparse(newModel);
   const newHistory = [...history.slice(0, historyActiveIndex + 1), newModel];
-  //console.log("abc", model.cells);
   console.log("delrow");
   setHistory(newHistory);
   setHistoryActiveIndex(newHistory.length - 1);
@@ -261,7 +311,7 @@ export default function SpreadsheetV() {
  function clearCell(x: number, y: number) {
   let newModel = new Spreadsheet(model.cells, 300, 52);
   newModel.cells[x][y] = new Cell(new StringLiteral(""), x, y);
-
+  reparse(newModel);
   reassess(newModel);
   console.log("clear new model", newModel);
 
@@ -277,18 +327,65 @@ export default function SpreadsheetV() {
     let content = new RangeExpression(value, model);
     model.cells[x][y].setCellContent(content);
     reassess(new Spreadsheet(model.cells, 300, 52));
-
     model.cells[x][y].getCellContent()?.getContent();
    }
    if (value.includes("REF")) {
     model.cells[x][y].setCellContent(new CellReference(value, model));
-    console.log("@", model.cells);
     model.cells[x][y].getCellContent()?.getContent();
     reassess(new Spreadsheet(model.cells, 300, 52));
    }
   } catch (e: any) {
    console.log(e.message);
    setErrorMessage(e.message);
+   setErrorOccurred(true);
+  }
+ }
+
+ function reparse_ref(cell: string, newModel: Spreadsheet): void {
+  console.log(cell);
+  for (let i = 0; i < newModel.cells.length; i++) {
+   for (let j = 0; j < newModel.cells[0].length; j++) {
+    //console.log(model.cells[i][j].getCellContent());
+    if (
+     newModel.cells[i][j].getCellContent() instanceof Formula &&
+     newModel.cells[i][j].getCellContent().getContentString().includes(cell)
+    ) {
+     console.log("aa");
+
+     let value = newModel.cells[i][j].getCellContent().getContentString();
+     let content = new Formula(value, newModel);
+     content.parse();
+     newModel.cells[i][j].setCellContent(content);
+     reassess(new Spreadsheet(newModel.cells, 300, 52));
+    }
+   }
+  }
+ }
+
+ function reparse(newModel: Spreadsheet): void {
+  for (let i = 0; i < newModel.cells.length; i++) {
+   for (let j = 0; j < newModel.cells[0].length; j++) {
+    let value = newModel.cells[i][j].getCellContent().getContentString();
+    let content = new Formula(value, newModel);
+    content.parse();
+    newModel.cells[i][j].setCellContent(content);
+    reassess(new Spreadsheet(newModel.cells, 300, 52));
+   }
+  }
+ }
+
+ function checkFormula(x: number, y: number) {
+  try {
+   let value = model.cells[x][y].getCellContent()?.getContent();
+   if (value.match(/[+-\/*]/)) {
+    let content = new Formula(value, model);
+    content.parse();
+    model.cells[x][y].setCellContent(content);
+    reassess(new Spreadsheet(model.cells, 300, 52));
+   }
+  } catch (e: any) {
+   console.log(e.message);
+   setErrorMessage("Invalid Formula");
    setErrorOccurred(true);
   }
  }
@@ -305,17 +402,38 @@ export default function SpreadsheetV() {
  return (
   <div>
    {errorOccurred && (
-    <div id="error-popup" className="error-popup">
-     <span id="error-message">{errorMessage}</span>
-     <button id="close-error-button" onClick={hideErrorPopup}>
+    <div id="error-popup" className="error-popup my-2">
+     <span id="error-message" className="mx-3 py-2">
+      {errorMessage}
+     </span>
+     <button
+      id="close-error-button"
+      className="rounded px-2 py-1 fs-6 mx-3 my-2"
+      onClick={hideErrorPopup}
+     >
       Close
      </button>
     </div>
    )}
-   <Nav undo={undo} redo={redo} makeGraph={makeGraph} save={save} />
-   <div className="grid mx-2 ss-display">
-    <div className="row col-12">
-     <div className="offset-9 float-end col-1 input-group my-2">
+   <Nav
+    undo={undo}
+    redo={redo}
+    makeGraph={makeGraph}
+    isEditingTitle={isEditingTitle}
+    spreadsheetTitle={spreadsheetTitle}
+    setSpreadsheetTitle={setSpreadsheetTitle}
+    handleSaveTitle={handleSaveTitle}
+    handleEditTitle={handleEditTitle}
+    handleTitleChange={handleTitleChange}
+    save={save}
+   />
+
+   <div className="grid mx-2">
+    <div className="d-flex row col-12 justify-content-between">
+     <div className="formula-box rounded col-8 my-3">
+      fx: {currentDisplayVal.getCellContent().getContentString()}
+     </div>
+     <div className=" float-end col-1 input-group my-2">
       <div className="input-group-prepend">
        <i className="fa fa-search m-1 my-3"></i>
       </div>
@@ -348,6 +466,7 @@ export default function SpreadsheetV() {
             const highlightStyle = isCellMatchingSearch(cellValue as string)
              ? { backgroundColor: "lightblue" } // Apply highlighting style
              : {};
+
             return (
              <td
               className={"text-center p-0 cell"}
@@ -371,11 +490,16 @@ export default function SpreadsheetV() {
                   reasses={reassess}
                   updateCell={updateCell}
                   checkExpression={checkExpression}
+                  checkFormula={checkFormula}
                   pressAddRow={pressAddRow}
                   pressAddCol={pressAddCol}
                   pressDelRow={pressDelRow}
                   pressDelCol={pressDelCol}
                   clearCell={clearCell}
+                  setCurrentDisplayValue={setCurrentDisplayVal}
+                  currentDisplayValue={currentDisplayVal
+                   .getCellContent()
+                   .getContentString()}
                  />
                 );
                } catch (error: any) {
