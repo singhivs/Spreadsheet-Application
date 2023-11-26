@@ -147,9 +147,9 @@ export default function SpreadsheetV() {
  };
 
  function save() {
-  console.log("save");
+  // console.log("save");
   const csv: string = model.retrieveVersion();
-  console.log(csv);
+  // console.log(csv);
 
   // 'a' element
   const link = document.createElement("a");
@@ -162,7 +162,7 @@ export default function SpreadsheetV() {
  }
 
  function makeGraph(graph: any) {
-  console.log(graph);
+  // console.log(graph);
 
   const dr: DataRepresentation = new DataRepresentation(
    graph.start,
@@ -200,10 +200,10 @@ export default function SpreadsheetV() {
  }
 
  function undo() {
-  console.log("undo", { historyActiveIndex, history });
+  // console.log("undo", { historyActiveIndex, history });
   if (historyActiveIndex > 0) {
    const newIndex = historyActiveIndex - 1;
-   console.log("history new index", history[newIndex]);
+   // console.log("history new index", history[newIndex]);
    reassess(new Spreadsheet(history[newIndex].cells, 300, 52));
    setHistoryActiveIndex(newIndex);
   }
@@ -250,14 +250,14 @@ export default function SpreadsheetV() {
 
  function pressAddRow(rowNr: number) {
   model.addRow(rowNr);
-  console.log(model.cells);
+  // console.log(model.cells);
 
   let newModel = new Spreadsheet(model.cells, 300, 52);
   reparse(newModel);
   const newHistory = [...history.slice(0, historyActiveIndex + 1), newModel];
-  //console.log("abc", model.cells);
+  //// console.log("abc", model.cells);
   setHistory(newHistory);
-  console.log("addrow");
+  // console.log("addrow");
   setHistoryActiveIndex(newHistory.length - 1);
 
   if (tool === 0) setTool(1);
@@ -266,13 +266,13 @@ export default function SpreadsheetV() {
 
  function pressAddCol(colNr: number) {
   model.addColumn(colNr);
-  console.log(model.cells);
+  // console.log(model.cells);
 
   let newModel = new Spreadsheet(model.cells, 300, 52);
   reparse(newModel);
   const newHistory = [...history.slice(0, historyActiveIndex + 1), newModel];
-  //console.log("abc", model.cells);
-  console.log("addcol");
+  //// console.log("abc", model.cells);
+  // console.log("addcol");
   setHistory(newHistory);
   setHistoryActiveIndex(newHistory.length - 1);
 
@@ -286,7 +286,7 @@ export default function SpreadsheetV() {
   let newModel = new Spreadsheet(model.cells, 300, 52);
   reparse(newModel);
   const newHistory = [...history.slice(0, historyActiveIndex + 1), newModel];
-  console.log("delcol");
+  // console.log("delcol");
   setHistory(newHistory);
   setHistoryActiveIndex(newHistory.length - 1);
 
@@ -300,7 +300,7 @@ export default function SpreadsheetV() {
   let newModel = new Spreadsheet(model.cells, 300, 52);
   reparse(newModel);
   const newHistory = [...history.slice(0, historyActiveIndex + 1), newModel];
-  console.log("delrow");
+  // console.log("delrow");
   setHistory(newHistory);
   setHistoryActiveIndex(newHistory.length - 1);
 
@@ -313,7 +313,7 @@ export default function SpreadsheetV() {
   newModel.cells[x][y] = new Cell(new StringLiteral(""), x, y);
   reparse(newModel);
   reassess(newModel);
-  console.log("clear new model", newModel);
+  // console.log("clear new model", newModel);
 
   const newHistory = [...history.slice(0, historyActiveIndex + 1), newModel];
   setHistory(newHistory);
@@ -335,22 +335,22 @@ export default function SpreadsheetV() {
     reassess(new Spreadsheet(model.cells, 300, 52));
    }
   } catch (e: any) {
-   console.log(e.message);
+   // console.log(e.message);
    setErrorMessage(e.message);
    setErrorOccurred(true);
   }
  }
 
  function reparse_ref(cell: string, newModel: Spreadsheet): void {
-  console.log(cell);
+  // console.log(cell);
   for (let i = 0; i < newModel.cells.length; i++) {
    for (let j = 0; j < newModel.cells[0].length; j++) {
-    //console.log(model.cells[i][j].getCellContent());
+    //// console.log(model.cells[i][j].getCellContent());
     if (
      newModel.cells[i][j].getCellContent() instanceof Formula &&
      newModel.cells[i][j].getCellContent().getContentString().includes(cell)
     ) {
-     console.log("aa");
+     // console.log("aa");
 
      let value = newModel.cells[i][j].getCellContent().getContentString();
      let content = new Formula(value, newModel);
@@ -384,7 +384,7 @@ export default function SpreadsheetV() {
     reassess(new Spreadsheet(model.cells, 300, 52));
    }
   } catch (e: any) {
-   console.log(e.message);
+   // console.log(e.message);
    setErrorMessage("Invalid Formula");
    setErrorOccurred(true);
   }
@@ -392,7 +392,7 @@ export default function SpreadsheetV() {
 
  function hideErrorPopup() {
   const newIndex = historyActiveIndex - 1;
-  console.log("history new index", history[newIndex]);
+  // console.log("history new index", history[newIndex]);
   reassess(new Spreadsheet(history[newIndex].cells, 300, 52));
   setErrorMessage("");
   setErrorOccurred(false);
