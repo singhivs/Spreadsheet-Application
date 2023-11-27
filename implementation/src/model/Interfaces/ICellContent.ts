@@ -7,6 +7,9 @@ export interface CellContent {
    */
   getContent(): string;
 
+  /**
+   * Returns the initial user input that represents the cell content.
+   */
   getContentString(): string;
 
   /*

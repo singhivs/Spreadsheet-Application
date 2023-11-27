@@ -25,7 +25,10 @@ export class RangeExpression implements CellContent {
     // use a regular expression to match column and row
     const match = cell.match(/([A-Z]+)(\d+)/);
 
+    // throw an error if the cell reference is invalid
     if (!match) throw new Error("Invalid cell reference.");
+
+    // extract the column
     const column = match[1];
 
     // subtract 1 to make A1 (0, 0)
@@ -34,21 +37,28 @@ export class RangeExpression implements CellContent {
   }
 
   /**
-   *
-   * @param column
-   * @returns
+   * Helper function that converts a column name to its zero-indexed numerical
+   * representation.
    */
   private columnToIndex(column: string): number {
+    // initialize a variable to accumulate the numerical representation
     let sum = 0;
     for (let i = 0; i < column.length; i++) {
+      // multiply by 26 for each character (Excel column naming scheme)
       sum *= 26;
+      // convert letter to numerical representation
       sum += column.charCodeAt(i) - "A".charCodeAt(0) + 1;
     }
-    return sum - 1; // Convert to zero-indexed
+    return sum - 1; // convert to zero-indexed
   }
 
+  /**
+   * Helper function that evaluates the range expression and perform SUM or AVERAGE
+   * operations.
+   */
   private evaluateRangeExpression(): string {
     if (this.val == null) {
+      // throw an error if the range expression is invalid
       throw new Error("Invalid range expression.");
     }
     // Parse the range expression, e.g., "SUM(A1:B2)" or "AVERAGE(A1:B2)"

@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+
+// define a functional component called "Nav" that represents the top navigation menu
 export function Nav(props: any) {
  const [vis, setVis] = useState(false);
  const [graph, setGraph] = useState({
@@ -11,7 +13,7 @@ export function Nav(props: any) {
   yax: "",
  });
 
- // close modal and reset values
+ // function that closes modal and resets values
  function closeModal() {
   setVis(!vis);
   setGraph({
@@ -24,12 +26,13 @@ export function Nav(props: any) {
   });
  }
 
- // create a graph
+ // function that creates a graph
  function create() {
   props.makeGraph(graph);
   closeModal();
  }
 
+ // return the JSX for the navigation component
  return (
   <div className="d-flex justify-content-center bg-nav grid row col-12">
    <div className="container py-3">
@@ -40,7 +43,7 @@ export function Nav(props: any) {
         <input
          type="text"
          value={props.spreadsheetTitle}
-         className="form-control"
+         className="form-control py-1"
          onChange={(e) => props.handleTitleChange(e.target.value)}
         />
        ) : (
@@ -48,6 +51,7 @@ export function Nav(props: any) {
        )}
       </div>
      </div>
+     {/* Button to save or edit title based on "isEditingTitle" prop */}
      <button
       className="rounded float-start px-2 py-1 fs-6"
       onClick={
@@ -56,6 +60,7 @@ export function Nav(props: any) {
      >
       {props.isEditingTitle ? "Save" : "Edit"}
      </button>
+     {/* Buttons for undo, redo, help, save, and create chart */}
      <button
       type="button"
       title="undo"
@@ -88,13 +93,14 @@ export function Nav(props: any) {
      <button
       type="button"
       title="create chart"
-      className="rounded float-end px-2 py-1 fs-6 "
+      className="rounded float-end px-2 py-1 fs-6"
       onClick={() => setVis(!vis)}
      >
       <i className="fa fa-chart-simple"></i>
      </button>
     </h5>
    </div>
+   {/* Conditional rendering of the chart creation modal based on "vis" state */}
    {vis && (
     <div className="mode">
      <div className="modal-dialog modal-dialog-centered" role="document">
@@ -103,6 +109,7 @@ export function Nav(props: any) {
         <h5 className="modal-title pb-3" id="exampleModalLongTitle">
          <b>chart creation</b>
         </h5>
+        {/* Button that closes the modal */}
         <button
          type="button"
          className="close rounded float-end px-2 fs-6 mx-2"
@@ -114,6 +121,7 @@ export function Nav(props: any) {
         </button>
        </div>
        <div className="modal-body">
+        {/* Input fields and selectors for the chart creation */}
         <label>
          {" "}
          from*:{" "}
