@@ -186,48 +186,54 @@ export default function SpreadsheetV() {
 
  // function to create a graph/chart
  function makeGraph(graph: any) {
-  // create a DataRepresentation object with the specified parameters
-  const dr: DataRepresentation = new DataRepresentation(
-   graph.start,
-   graph.end,
-   model
-  );
+  try {
+   // create a DataRepresentation object with the specified parameters
+   const dr: DataRepresentation = new DataRepresentation(
+    graph.start,
+    graph.end,
+    model
+   );
 
-  // get data values for the graph
-  const vals2 = dr.getData();
+   // get data values for the graph
+   const vals2 = dr.getData();
 
-  // configure options for the graph
-  const op = {
-   responsive: true,
-   plugins: {
-    legend: {
-     display: false,
+   // configure options for the graph
+   const op = {
+    responsive: true,
+    plugins: {
+     legend: {
+      display: false,
+     },
+     title: {
+      display: true,
+      text: graph.title,
+     },
     },
-    title: {
-     display: true,
-     text: graph.title,
-    },
-   },
-  };
+   };
 
-  // create data for the graph
-  const dat = {
-   labels: ["", "", "", graph.xax, "", "", ""],
-   datasets: [
-    {
-     label: graph.yax,
-     data: vals2,
-     backgroundColor: "#98ebd4",
-    },
-   ],
-  };
+   // create data for the graph
+   const dat = {
+    labels: ["", "", "", graph.xax, "", "", ""],
+    datasets: [
+     {
+      label: graph.yax,
+      data: vals2,
+      backgroundColor: "#98ebd4",
+     },
+    ],
+   };
 
-  // clone the existing charts array and add a new Chart component to it
-  const arrC = charts.map((e: any) => e);
-  arrC.push(<Chart type={graph.type} options={op} data={dat} />);
+   // clone the existing charts array and add a new Chart component to it
+   const arrC = charts.map((e: any) => e);
+   arrC.push(<Chart type={graph.type} options={op} data={dat} />);
 
-  // update the state with the new array of charts
-  setCharts(arrC);
+   // update the state with the new array of charts
+   setCharts(arrC);
+  } catch (e: any) {
+   // handle any errors by setting an "Cannot create chart. Error occured" error message
+   setErrorMessage("Cannot create chart. Error occured");
+   setErrorOccurred(true);
+  }
  }
 
  // function to undo latest change
