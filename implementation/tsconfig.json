@@ -19,4 +19,3 @@
   "include": ["**/*.ts", "src"],
   "exclude": ["node_modules/*", "**/*.js"]
 }
-, "test/rangeExpression.test.ts"

@@ -24,10 +24,10 @@ import {
 
 import { Chart } from "react-chartjs-2";
 import { DataRepresentation } from "../model/DataRepresentation";
-import { isElementOfType } from "react-dom/test-utils";
 import { Formula } from "../model/CellContent/FormulaClass";
 import { NumericLiteral } from "../model/CellContent/NumericalLiteral";
 
+// register Chart.js components
 ChartJS.register(
  CategoryScale,
  RadialLinearScale,
@@ -40,84 +40,98 @@ ChartJS.register(
  Tooltip
 );
 
-// instead should pass the Spreadsheet in as a prop or value
+// define the main component
 export default function SpreadsheetV() {
- const [searchValue, setSearchValue] = useState(""); // State for search input value
+ // state for search input value
+ const [searchValue, setSearchValue] = useState("");
+
+ // custom hook to handle context menu behavior
  const { points, setPoints } = useContextMenu();
+
+ // create initial cells
  const arrCells: Cell[][] = createCells();
+
+ // state for the spreadsheet model
  const [model, reassess] = useState(new Spreadsheet(arrCells, 300, 52));
+
+ // state for the current tool (0 for cell, 1 for row, 2 for column)
  const [tool, setTool] = useState(0);
+
+ // state for the history of spreadsheet versions
  const [history, setHistory] = useState([model]);
+
+ // state for storing charts
  const [charts, setCharts]: any[] = useState([]);
- // const [history, dispatch] = useReducer(historyReducer, []);
+
+ // state for the active index in the history
  const [historyActiveIndex, setHistoryActiveIndex] = useState(0);
+
+ // state for error message and error occurrence
  const [errorMessage, setErrorMessage] = React.useState("");
  const [errorOccurred, setErrorOccurred] = React.useState(false);
+
+ // state for the spreadsheet title and editing mode
  const [spreadsheetTitle, setSpreadsheetTitle] = useState(
   "Your Spreadsheet Title"
  );
  const [isEditingTitle, setIsEditingTitle] = useState(false);
- // const [history, dispatch] = useReducer(historyReducer, []);
+
+ // state for the current cell's display value
  const [currentDisplayVal, setCurrentDisplayVal] = useState(
   new Cell(model.cells[0][0].getCellContent(), 0, 0)
  );
 
+ // function to handle title change
  const handleTitleChange = (newValue: string) => {
   setSpreadsheetTitle(newValue);
  };
 
+ // function to start editing the title
  const handleEditTitle = () => {
   setIsEditingTitle(true);
  };
 
+ // function to save the title changes
  const handleSaveTitle = () => {
   setIsEditingTitle(false);
  };
 
+ // initial version history
  const firstVersion = {
-  date: new Date().toLocaleDateString(), // Use the current date
-  description: "First version", // Provide a description
+  date: new Date().toLocaleDateString(), // use the current date
+  description: "First version", // provide a description
  };
- const [versionHistory, setVersionHistory] = useState([firstVersion]);
 
- function saveVersionToHistory() {
-  const newVersion = {
-   date: new Date().toLocaleDateString(), // Use the current date
-   description: "Description of the version", // Provide a description
-  };
-
-  // Update the history state with the new version
-  setVersionHistory([...versionHistory, newVersion]);
- }
-
+ // effect to attach an event listener to the error popup close button
  useEffect(() => {
-  // Attach an event listener to the "Close" button within the ErrorBoundary
+  // attach an event listener to the "Close" button within the ErrorBoundary
   const closeButton = document.getElementById("close-error-button");
   if (closeButton) {
    closeButton.addEventListener("click", hideErrorPopup);
   }
 
-  // Remove the event listener when the component unmounts
+  // remove the event listener when the component unmounts
   return () => {
    if (closeButton) {
     closeButton.removeEventListener("click", hideErrorPopup);
    }
   };
- }, []); // Empty dependency array to run this effect only once
+ }, []); // empty dependency array to run this effect only once
 
+ // function to create initial cells for the spreadsheet
  function createCells(): Cell[][] {
-  // Define the dimensions of the 2D array
+  // define the dimensions of the 2D array
   const numRows = 20;
   const numCols = 25;
 
-  // Create a 2D array of cells
+  // create a 2D array of cells
   const cellArray: Cell[][] = [];
 
-  // Populate the 2D array with cells
+  // populate the 2D array with cells
   for (let row = 0; row < numRows; row++) {
    const rowArray: Cell[] = [];
    for (let col = 0; col < numCols; col++) {
-    // Initialize each cell with a StringLiteral content (you can use any suitable CellContent)
+    // initialize each cell with an empty StringLiteral content
     const cellContent = new StringLiteral("");
     const cell = new Cell(cellContent, row, col);
     rowArray.push(cell);
@@ -127,7 +141,7 @@ export default function SpreadsheetV() {
   return cellArray;
  }
 
- // get cell data
+ // function to convert column number to letter
  const numToLetter = (col: number) => {
   let c = col;
   let start = "";
@@ -138,7 +152,7 @@ export default function SpreadsheetV() {
   return start;
  };
 
- // Function to check if a cell value matches the search input
+ // function to check if a cell value matches the search input
  const isCellMatchingSearch = (cellValue: string) => {
   if (searchValue !== "") {
    return cellValue.toLowerCase().includes(searchValue.toLowerCase());
@@ -146,31 +160,43 @@ export default function SpreadsheetV() {
   return false;
  };
 
+ // function to save the spreadsheet as a CSV file
  function save() {
-  // console.log("save");
+  // retrieve the CSV data from the model
   const csv: string = model.retrieveVersion();
-  // console.log(csv);
 
-  // 'a' element
+  // create an 'a' element for downloading
   const link = document.createElement("a");
+
+  // create a Blob containing the CSV data with the specified MIME type
   const file = new Blob([csv], { type: "text/plain" });
 
+  // set the href attribute of the link to the object URL of the Blob
   link.href = URL.createObjectURL(file);
+
+  // specify the default filename for the downloaded file
   link.download = "spreadsheet.csv";
+
+  // simulate a click event on the link to trigger the download
   link.click();
+
+  // revoke the object URL to free up resources
   URL.revokeObjectURL(link.href);
  }
 
+ // function to create a graph/chart
  function makeGraph(graph: any) {
-  // console.log(graph);
-
+  // create a DataRepresentation object with the specified parameters
   const dr: DataRepresentation = new DataRepresentation(
    graph.start,
    graph.end,
    model
   );
+
+  // get data values for the graph
   const vals2 = dr.getData();
 
+  // configure options for the graph
   const op = {
    responsive: true,
    plugins: {
@@ -184,6 +210,7 @@ export default function SpreadsheetV() {
    },
   };
 
+  // create data for the graph
   const dat = {
    labels: ["", "", "", graph.xax, "", "", ""],
    datasets: [
@@ -194,33 +221,52 @@ export default function SpreadsheetV() {
     },
    ],
   };
+
+  // clone the existing charts array and add a new Chart component to it
   const arrC = charts.map((e: any) => e);
   arrC.push(<Chart type={graph.type} options={op} data={dat} />);
+
+  // update the state with the new array of charts
   setCharts(arrC);
  }
 
+ // function to undo latest change
  function undo() {
-  // console.log("undo", { historyActiveIndex, history });
   if (historyActiveIndex > 0) {
+   // calculate the new index for the previous history element
    const newIndex = historyActiveIndex - 1;
-   // console.log("history new index", history[newIndex]);
+
+   // reassess the spreadsheet using one of the versions within the history array
+   // (the one at the computed index)
    reassess(new Spreadsheet(history[newIndex].cells, 300, 52));
+
+   // update the history active index
    setHistoryActiveIndex(newIndex);
   }
  }
 
+ // function to redo latest change
  function redo() {
   if (historyActiveIndex < history.length - 1) {
+   // calculate the new index for the next history element
    const newIndex = historyActiveIndex + 1;
+
+   // reassess the spreadsheet using one of the versions within the history array
+   // (the one at the computed index)
    reassess(new Spreadsheet(history[newIndex].cells, 300, 52));
+
+   // update the history active index
    setHistoryActiveIndex(newIndex);
   }
  }
 
+ // function that updates the cell at the provided column and row, with the given value
  function updateCell(x: number, y: number, value: string) {
+  // create new Spreadsheet models for updating the spreadsheet and the history
   let newModel = new Spreadsheet(model.cells, 300, 52);
   let newModelHistory = new Spreadsheet(model.cells, 300, 52);
 
+  // check if the cell content is not a StringLiteral or NumericLiteral, and convert it if necessary
   if (
    !(
     newModel.cells[x][y].getCellContent() instanceof StringLiteral ||
@@ -231,174 +277,281 @@ export default function SpreadsheetV() {
     new StringLiteral(newModel.cells[x][y].getCellContent().getContentString())
    );
   } else {
+   // update the cell content with the provided value
    newModel.cells[x][y].getCellContent()?.setContent(value);
   }
 
-  let newY = y + 1;
-  //if (!(newModel.cells[x][y].getCellContent() instanceof Formula)) {
-  reparse_ref(numToLetter(x) + newY, newModel);
-  //}
+  // reparse formulas that refer to this cell
+  let newX = x + 1;
+  reparse_ref(numToLetter(y) + newX, newModel);
 
+  // create a new history by cloning the existing history and adding the new model
   const newHistory = [...history.slice(0, historyActiveIndex + 1), newModel];
 
+  // Update the history with the new history and the index with the new history active index
   setHistory(newHistory);
   setHistoryActiveIndex(newHistory.length - 1);
 
+  // reassess the spreadsheet
   reassess(newModel);
+
+  // update the current display value
   setCurrentDisplayVal(new Cell(newModel.cells[x][y].getCellContent(), x, y));
  }
 
+ // function that handles the addition of a row
  function pressAddRow(rowNr: number) {
+  // add a new row to the spreadsheet model
   model.addRow(rowNr);
-  // console.log(model.cells);
 
+  // create a new model based on the current state of the spreadsheet cells
   let newModel = new Spreadsheet(model.cells, 300, 52);
+
+  // reparse the formulas in the new model
   reparse(newModel);
+
+  // create a new history with the updated model
   const newHistory = [...history.slice(0, historyActiveIndex + 1), newModel];
-  //// console.log("abc", model.cells);
+
+  // update the history state with the new history
   setHistory(newHistory);
-  // console.log("addrow");
+
+  // set the active index in the history to the latest version
   setHistoryActiveIndex(newHistory.length - 1);
 
+  // toggle the tool between cell (0) and row (1)
   if (tool === 0) setTool(1);
   else setTool(0);
  }
 
+ // function that handles the addition of a column
  function pressAddCol(colNr: number) {
+  // add a new column to the spreadsheet model
   model.addColumn(colNr);
-  // console.log(model.cells);
 
+  // create a new model based on the current state of the spreadsheet cells
   let newModel = new Spreadsheet(model.cells, 300, 52);
+
+  // reparse the formulas in the new model
   reparse(newModel);
+
+  // create a new history with the updated model
   const newHistory = [...history.slice(0, historyActiveIndex + 1), newModel];
-  //// console.log("abc", model.cells);
-  // console.log("addcol");
+
+  // update the history state with the new history
   setHistory(newHistory);
+
+  // set the active index in the history to the latest version
   setHistoryActiveIndex(newHistory.length - 1);
 
+  // toggle the tool between cell (0) and row (1)
   if (tool === 0) setTool(1);
   else setTool(0);
  }
 
+ // function that handles the deletion of a column
  function pressDelCol(colNr: number) {
+  // delete a column from the spreadsheet model
   model.deleteColumn(colNr);
 
+  // create a new model based on the current state of the spreadsheet cells
   let newModel = new Spreadsheet(model.cells, 300, 52);
+
+  // reparse the formulas in the new model
   reparse(newModel);
+
+  // create a new history with the updated model
   const newHistory = [...history.slice(0, historyActiveIndex + 1), newModel];
-  // console.log("delcol");
+
+  // update the history state with the new history
   setHistory(newHistory);
+
+  // set the active index in the history to the latest version
   setHistoryActiveIndex(newHistory.length - 1);
 
+  // toggle the tool between cell (0) and row (1)
   if (tool === 0) setTool(1);
   else setTool(0);
  }
 
+ // function that handles the deletion of a row
  function pressDelRow(rowNr: number) {
+  // delete a row from the spreadsheet model
   model.deleteRow(rowNr);
 
+  // create a new model based on the current state of the spreadsheet cells
   let newModel = new Spreadsheet(model.cells, 300, 52);
+
+  // reparse the formulas in the new model
   reparse(newModel);
+
+  // create a new history with the updated model
   const newHistory = [...history.slice(0, historyActiveIndex + 1), newModel];
-  // console.log("delrow");
+
+  // update the history state with the new history
   setHistory(newHistory);
+
+  // set the active index in the history to the latest version
   setHistoryActiveIndex(newHistory.length - 1);
 
+  // toggle the tool between cell (0) and row (1)
   if (tool === 0) setTool(1);
   else setTool(0);
  }
 
+ // function that handles clearing the cell and the given (x, y) position
  function clearCell(x: number, y: number) {
+  // create a new model based on the current state of the spreadsheet cells
   let newModel = new Spreadsheet(model.cells, 300, 52);
-  newModel.cells[x][y] = new Cell(new StringLiteral(""), x, y);
-  reparse(newModel);
-  reassess(newModel);
-  // console.log("clear new model", newModel);
 
+  // set the cell at position (x, y) to have an empty StringLiteral content
+  newModel.cells[x][y] = new Cell(new StringLiteral(""), x, y);
+
+  // reparse the formulas in the new model
+  reparse(newModel);
+
+  // reassess the new model
+  reassess(newModel);
+
+  // create a new history with the updated model
   const newHistory = [...history.slice(0, historyActiveIndex + 1), newModel];
+
+  // udate the history state with the new history
   setHistory(newHistory);
+
+  // set the active index in the history to the latest version
   setHistoryActiveIndex(newHistory.length - 1);
  }
 
+ // function that checks for range expressions and cell references within the input and
+ // parses them if found (gets the desired value)
  function checkExpression(x: number, y: number) {
   try {
+   // get the value of the cell content at position (x, y)
    let value = model.cells[x][y].getCellContent()?.getContent();
+   // check if the value includes "SUM" or "AVERAGE"
    if (value.includes("SUM") || value.includes("AVERAGE")) {
+    // create a RangeExpression object based on the value
     let content = new RangeExpression(value, model);
+
+    // set the cell content at position (x, y) to the new RangeExpression
     model.cells[x][y].setCellContent(content);
+
+    // reassess the spreadsheet with the updated model
     reassess(new Spreadsheet(model.cells, 300, 52));
+
+    // get the content of the updated cell
     model.cells[x][y].getCellContent()?.getContent();
    }
+
+   // check if the value includes "REF"
    if (value.includes("REF")) {
+    // set the cell content at position (x, y) to a new CellReference object
     model.cells[x][y].setCellContent(new CellReference(value, model));
+
+    // get the content of the updated cell
     model.cells[x][y].getCellContent()?.getContent();
+
+    // reassess the spreadsheet with the updated model
     reassess(new Spreadsheet(model.cells, 300, 52));
    }
   } catch (e: any) {
-   // console.log(e.message);
+   // handle any errors by setting an error message and indicating an error occurred
    setErrorMessage(e.message);
    setErrorOccurred(true);
   }
  }
 
+ // function that reparses the formulas within the spreadsheet that contain a
+ // reference to the given cell
  function reparse_ref(cell: string, newModel: Spreadsheet): void {
-  // console.log(cell);
+  // go through all of the cells in the spreadsheet
   for (let i = 0; i < newModel.cells.length; i++) {
    for (let j = 0; j < newModel.cells[0].length; j++) {
-    //// console.log(model.cells[i][j].getCellContent());
+    // if the current cell is a formula object and it contains a reference to the provided cell
     if (
      newModel.cells[i][j].getCellContent() instanceof Formula &&
      newModel.cells[i][j].getCellContent().getContentString().includes(cell)
     ) {
-     // console.log("aa");
-
+     // get the string of the current cell
      let value = newModel.cells[i][j].getCellContent().getContentString();
+     // create a new Formula object based on the string (value)
      let content = new Formula(value, newModel);
+     // parse the formula
      content.parse();
+     // set the cell content at position (i, j) to the parsed content
      newModel.cells[i][j].setCellContent(content);
+     // reassess the spreadsheet with the updated model
      reassess(new Spreadsheet(newModel.cells, 300, 52));
     }
    }
   }
  }
 
+ // function that reparses all of the formulas within the spreadsheet
  function reparse(newModel: Spreadsheet): void {
+  // go through all of the cells in the spreadsheet
   for (let i = 0; i < newModel.cells.length; i++) {
    for (let j = 0; j < newModel.cells[0].length; j++) {
-    let value = newModel.cells[i][j].getCellContent().getContentString();
-    let content = new Formula(value, newModel);
-    content.parse();
-    newModel.cells[i][j].setCellContent(content);
-    reassess(new Spreadsheet(newModel.cells, 300, 52));
+    // if the current cell is a formula object
+    if (newModel.cells[i][j].getCellContent() instanceof Formula) {
+     // get the string of the current cell
+     let value = newModel.cells[i][j].getCellContent().getContentString();
+     // create a new Formula object based on the string (value)
+     let content = new Formula(value, newModel);
+     // parse the formula
+     content.parse();
+     // set the cell content at position (i, j) to the parsed content
+     newModel.cells[i][j].setCellContent(content);
+     // reassess the spreadsheet with the updated model
+     reassess(new Spreadsheet(newModel.cells, 300, 52));
+    }
    }
   }
  }
 
+ // function that checks for formulas within the input and parses them if found
  function checkFormula(x: number, y: number) {
   try {
+   // get the value of the cell content at position (x, y)
    let value = model.cells[x][y].getCellContent()?.getContent();
+
+   // check if the value contains any mathematical operators (+, -, *, /)
    if (value.match(/[+-\/*]/)) {
+    // create a new Formula object based on the value
     let content = new Formula(value, model);
+
+    // parse the content
     content.parse();
+
+    // set the cell content at position (x, y) to the parsed content
     model.cells[x][y].setCellContent(content);
+
+    // reassess the spreadsheet with the updated model
     reassess(new Spreadsheet(model.cells, 300, 52));
    }
   } catch (e: any) {
-   // console.log(e.message);
+   // handle any errors by setting an "Invalid Formula" error message
    setErrorMessage("Invalid Formula");
    setErrorOccurred(true);
   }
  }
 
+ // function that handles hiding the error popup after the user closed it
  function hideErrorPopup() {
+  // decrement the active index in the history
   const newIndex = historyActiveIndex - 1;
-  // console.log("history new index", history[newIndex]);
+
+  // reassess the spreadsheet with the previous version from history
   reassess(new Spreadsheet(history[newIndex].cells, 300, 52));
+
+  // clear the error message and indicate that no error occurred
   setErrorMessage("");
   setErrorOccurred(false);
  }
 
- // below iterate over cell[][]
+ // the code below iterates over the cell[][] and renders the spreadsheet grid
+ // it also handles user interactions like right-click context menu and search
  return (
   <div>
    {errorOccurred && (
@@ -427,7 +580,6 @@ export default function SpreadsheetV() {
     handleTitleChange={handleTitleChange}
     save={save}
    />
-
    <div className="grid mx-2">
     <div className="d-flex row col-12 justify-content-between">
      <div className="formula-box rounded col-8 my-3">
@@ -462,52 +614,57 @@ export default function SpreadsheetV() {
           <tr>
            <th className="text-center pb-0">{x + 1}</th>
            {val.map((cell, y) => {
-            const cellValue = cell.getCellContent()?.getContentString();
-            const highlightStyle = isCellMatchingSearch(cellValue as string)
-             ? { backgroundColor: "lightblue" } // Apply highlighting style
-             : {};
+            try {
+             const cellValue = cell.getCellContent()?.getContentString();
+             const cellString = cell.getCellContent()?.getContent();
+             const highlightStyle = isCellMatchingSearch(cellString as string)
+              ? { backgroundColor: "lightblue" } // apply highlighting style
+              : {};
 
-            return (
-             <td
-              className={"text-center p-0 cell"}
-              onContextMenu={(e) => {
-               e.preventDefault();
-               setPoints({
-                x: e.pageX,
-                y: e.pageY,
-               });
-              }}
-              style={highlightStyle}
-             >
-              {(() => {
-               try {
-                return (
-                 <CellV
-                  displayValue={cell.getCellContent()?.getContent()}
-                  x={x}
-                  y={y}
-                  model={model}
-                  reasses={reassess}
-                  updateCell={updateCell}
-                  checkExpression={checkExpression}
-                  checkFormula={checkFormula}
-                  pressAddRow={pressAddRow}
-                  pressAddCol={pressAddCol}
-                  pressDelRow={pressDelRow}
-                  pressDelCol={pressDelCol}
-                  clearCell={clearCell}
-                  setCurrentDisplayValue={setCurrentDisplayVal}
-                  currentDisplayValue={currentDisplayVal
-                   .getCellContent()
-                   .getContentString()}
-                 />
-                );
-               } catch (error: any) {
-                console.error("Error:", error.message);
-               }
-              })()}
-             </td>
-            );
+             return (
+              <td
+               className={"text-center p-0 cell"}
+               onContextMenu={(e) => {
+                e.preventDefault();
+                setPoints({
+                 x: e.pageX,
+                 y: e.pageY,
+                });
+               }}
+               style={highlightStyle}
+              >
+               {(() => {
+                try {
+                 return (
+                  <CellV
+                   displayValue={cell.getCellContent()?.getContent()}
+                   x={x}
+                   y={y}
+                   model={model}
+                   reasses={reassess}
+                   updateCell={updateCell}
+                   checkExpression={checkExpression}
+                   checkFormula={checkFormula}
+                   pressAddRow={pressAddRow}
+                   pressAddCol={pressAddCol}
+                   pressDelRow={pressDelRow}
+                   pressDelCol={pressDelCol}
+                   clearCell={clearCell}
+                   setCurrentDisplayValue={setCurrentDisplayVal}
+                   currentDisplayValue={currentDisplayVal
+                    .getCellContent()
+                    .getContentString()}
+                  />
+                 );
+                } catch (error: any) {
+                 console.error("Error:", error.message);
+                }
+               })()}
+              </td>
+             );
+            } catch (error: any) {
+             console.error("Error:", error.message);
+            }
            })}
           </tr>
          );

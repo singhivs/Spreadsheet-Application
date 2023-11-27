@@ -1,5 +1,4 @@
 import { Cell } from "./Cell";
-import { NumericLiteral } from "./CellContent/NumericalLiteral";
 import { RangeExpression } from "./CellContent/RangeExpression";
 import { StringLiteral } from "./CellContent/StringLiteral";
 import { CellContent } from "./Interfaces/ICellContent";
@@ -23,7 +22,7 @@ export class Spreadsheet {
  public constructor(cells: Cell[][], maxRow: number, maxCol: number) {
   this.maxRow = maxRow;
   this.maxCol = maxCol;
-  if (cells.length == 0) {
+  if (cells.length === 0) {
    this.cells = this.initializeCells();
   } else {
    this.cells = cloneDeep(cells);
@@ -46,25 +45,26 @@ export class Spreadsheet {
   * Method to add a new row to the spreadsheet.
   */
  public addRow(index: number): void {
-  // First, check if the rowIndex is within the bounds of the current spreadsheet
+  // first, check if the rowIndex is within the bounds of the current spreadsheet
   if (index < 0 || index > this.cells.length) {
    throw new Error("Row index out of bounds");
   }
+
   if (this.cells.length >= this.maxRow) return;
 
-  // Create a new row with default cells or however your Cell class is instantiated
+  // create a new row with default cells or however your Cell class is instantiated
   const newRow: Cell[] = new Array(this.cells[0].length)
    .fill(null)
    .map((_, colIndex) => {
-    // Replace with the correct instantiation of a default cell
+    // replace with the correct instantiation of a default cell
     return new Cell(new StringLiteral(""), index, colIndex);
    });
-  // console.log(newRow);
+  console.log(newRow);
 
-  // Insert the new row into the cells array at the specified index
+  // insert the new row into the cells array at the specified index
   this.cells.splice(index, 0, newRow);
-  // console.log("cells ", this.cells);
-  // Update the row indices for all rows below the inserted row
+
+  // update the row indices for all rows below the inserted row
   for (let i = index + 1; i < this.cells.length; i++) {
    this.cells[i].forEach((cell) => {
     cell.setRow(cell.getRow() + 1);
@@ -73,26 +73,30 @@ export class Spreadsheet {
 
   this.renumber(this.cells.length - 1, 0);
 
-  // Update range expressions
-  this.updateRangeExpressionsForRowChange(index, "add");
+  // update range expressions
+  this.updateRangeExpressionsForRowChange(index, "delete");
  }
 
+ /**
+  * Method to add a new column to the spreadsheet.
+  */
  public addColumn(index: number): void {
-  // Check if columnIndex is within the bounds
+  // check if columnIndex is within the bounds
   if (index < 0 || index > this.maxCol) {
    throw new Error("Column index out of bounds.");
   }
+
   if (this.cells[0].length >= this.maxCol) return;
 
-  // Insert a new column at columnIndex for each row
+  // insert a new column at columnIndex for each row
   for (let rowIndex = 0; rowIndex < this.cells.length; rowIndex++) {
-   // Create a new cell with default content, here I'm assuming a StringLiteral with an empty string
+   // create a new cell with default content, here I'm assuming a StringLiteral with an empty string
    const newCell = new Cell(new StringLiteral(""), rowIndex, index);
-   // Insert the new cell into the current row at the specified index
+   // insert the new cell into the current row at the specified index
    this.cells[rowIndex].splice(index, 0, newCell);
   }
 
-  // Update range expressions
+  // update range expressions
   this.updateRangeExpressionsForColumnChange(index, "add");
  }
 
@@ -100,17 +104,15 @@ export class Spreadsheet {
   * Method to delete a row from the spreadsheet based on the provided index.
   */
  public deleteRow(index: number): void {
-  // Check if rowIndex is within the bounds
+  // check if rowIndex is within the bounds
   if (index < 0 || index >= this.maxRow) {
    throw new Error("Row index out of bounds.");
   }
 
-  // Remove the row at rowIndex
+  // remove the row at rowIndex
   this.cells.splice(index, 1);
 
-  //this.renumber(0, 0);
-
-  // Update range expressions
+  // update range expressions
   this.updateRangeExpressionsForRowChange(index, "delete");
  }
 
@@ -118,25 +120,24 @@ export class Spreadsheet {
   * Method to delete a column from the spreadsheet based on the provided index.
   */
  public deleteColumn(index: number): void {
-  // Check if columnIndex is within the bounds
+  // check if columnIndex is within the bounds
   if (index < 0 || index >= this.maxCol) {
    throw new Error("Column index out of bounds.");
   }
 
-  // Remove the column at columnIndex from each row
+  // remove the column at columnIndex from each row
   for (let row of this.cells) {
    row.splice(index, 1);
   }
 
-  // Update the column indices for cells after the removed column
+  // update the column indices for cells after the removed column
   for (let row of this.cells) {
    for (let col = index; col < row.length; col++) {
     row[col].setCol(col);
    }
   }
 
-  this.renumber(0, 0);
-  // Update range expressions
+  // update range expressions
   this.updateRangeExpressionsForColumnChange(index, "delete");
  }
 
@@ -144,7 +145,7 @@ export class Spreadsheet {
   * Method to retrieve the content of a cell at the specified row and column.
   */
  public getCell(row: number, col: number): Cell {
-  // Check if the row and col are within the bounds of the spreadsheet
+  // check if the row and col are within the bounds of the spreadsheet
   if (
    row >= 0 &&
    row < this.cells.length &&
@@ -153,9 +154,7 @@ export class Spreadsheet {
   ) {
    return this.cells[row][col];
   } else {
-   // Handle out of bounds error
-   this.handleErrors();
-   // Instead of returning null, throw an error
+   // instead of returning null, throw an error
    throw new Error("Cell coordinates out of bounds.");
   }
  }
@@ -164,12 +163,12 @@ export class Spreadsheet {
   * Method to set the content of a cell at the specified row and column.
   */
  public setCell(row: number, col: number, content: CellContent): void {
-  // Check if the row and col are within the bounds of the spreadsheet
+  // check if the row and col are within the bounds of the spreadsheet
   if (row >= 0 && row < this.maxRow && col >= 0 && col < this.maxCol) {
    this.cells[row][col].setCellContent(content);
   } else {
-   // Handle out of bounds error
-   this.handleErrors();
+   // instead of returning null, throw an error
+   throw new Error("Cell coordinates out of bounds.");
   }
  }
 
@@ -177,15 +176,11 @@ export class Spreadsheet {
   * Method to clear the content of a cell at the specified row and column.
   */
  public clearCellContents(row: number, col: number): void {
+  // get the cell at the given row and column number
   let cell = this.cells[row][col];
-  cell.clear();
- }
 
- /**
-  * Method to handle errors and perform necessary actions or logging.
-  */
- public handleErrors(): void {
-  // ...
+  // clear the cell
+  cell.clear();
  }
 
  /**
@@ -204,19 +199,12 @@ export class Spreadsheet {
   for (let i = 0; i < this.cells.length; i++) {
    for (let j = 0; j < this.cells[0].length; j++) {
     let content = this.cells[i][j];
-    if (this.getContent(content).toString().includes(searchString)) {
+    if (content.getCellContent().getContent().includes(searchString)) {
      result.push([i, j]);
     }
    }
   }
   return result;
- }
-
- /**
-  * Method to evaluate the content of a cell at the specified row and column.
-  */
- public evaluateContent(row: number, col: number): any {
-  throw new Error("Method not implemented.");
  }
 
  /**
@@ -233,7 +221,7 @@ export class Spreadsheet {
    let sTemp: String = ",";
    for (let j = 0; j < this.cells[i].length; j++) {
     sTemp += this.cells[i][j].getCellContent().getContent().toString();
-    if (j + 1 != this.cells[i].length) sTemp += ",";
+    if (j + 1 !== this.cells[i].length) sTemp += ",";
    }
    ss.push(sTemp);
   }
