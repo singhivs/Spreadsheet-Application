@@ -26,11 +26,11 @@ You can perform various operations on cells:
 
 - **Deleting Rows/Columns:** To delete a row or column, click on a cell within the row or column, and choose the delete option from the context menu.
 
-- **Entering Cell References:** You can use cell references like `REF(A4)` within formulas to reference other cells in your calculations. Simply type that string in a cell and click 'Enter'. The cell value will change to the appropriate result (You can still view the original reference associated with the cell in the text box located above the spreadsheet that begins with 'fx:').
+- **Entering Cell References:** You can use cell references like `REF(A4)` within formulas to reference other cells in your calculations. Simply type that string in a cell and press 'Enter'. The cell value will change to the appropriate result (You can still view the original reference associated with the cell in the text box located above the spreadsheet that begins with 'fx:').
 
-- **Entering Range Expressions:** Range expressions like `SUM(A1:A4)` or `AVG(A1:A4)` can be used to perform calculations on a range of cells. Simply type that string in a cell and click 'Enter'. The cell value will change to the appropriate result (You can still view the original expression associated with the cell in the text box located above the spreadsheet that begins with 'fx:').
+- **Entering Range Expressions:** Range expressions like `SUM(A1:A4)` or `AVG(A1:A4)` can be used to perform calculations on a range of cells. Simply type that string in a cell and press 'Enter'. The cell value will change to the appropriate result (You can still view the original expression associated with the cell in the text box located above the spreadsheet that begins with 'fx:').
 
-- **Entering Formulas:** You can create formulas in cells to perform complex calculations. Enter your desired formula within a cell and click enter. The cell value will change to the appropriate result (You can still view the original formula associated with the cell in the text box located above the spreadsheet that begins with 'fx:'). An example of a formula would be: '1 + 2 \* 3'.
+- **Entering Formulas:** You can create formulas in cells to perform complex calculations. Enter your desired formula within a cell and press 'Enter'. The cell value will change to the appropriate result (You can still view the original formula associated with the cell in the text box located above the spreadsheet that begins with 'fx:'). An example of a formula would be: '1 + 2 \* 3'.
 
 - **Clearing a Cell:** You can also immediately clear a cell by clicking on it and choosing the clear cell option in the context menu.
 
