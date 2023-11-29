@@ -21,7 +21,7 @@ describe("Spreadsheet App", () => {
 
  beforeEach(async () => {
   page = await browser.newPage();
-  await page.goto("http://localhost:3004");
+  await page.goto("http://localhost:3000");
  });
 
  afterEach(async () => {
