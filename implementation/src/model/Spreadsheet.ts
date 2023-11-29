@@ -59,7 +59,6 @@ export class Spreadsheet {
     // replace with the correct instantiation of a default cell
     return new Cell(new StringLiteral(""), index, colIndex);
    });
-  console.log(newRow);
 
   // insert the new row into the cells array at the specified index
   this.cells.splice(index, 0, newRow);
