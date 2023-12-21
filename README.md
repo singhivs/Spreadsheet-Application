@@ -1,5 +1,7 @@
 Spreadsheet Application README
 
+<img width="714" alt="Screenshot 2023-12-20 at 11 38 51 PM" src="https://github.com/singhivs/Spreadsheet-Application/assets/116673844/cddcb16c-3182-4872-965e-bf1a48f7b0ff">
+
 Welcome to our spreadsheet application! This README will guide you on how to set up and use our application effectively.
 
 Instructions
