@@ -23,6 +23,7 @@ To begin using our spreadsheet application, you can enter numeric or string valu
 Cell Operations
 
 You can perform various operations on cells:
+<img width="1182" alt="Screenshot 2023-12-20 at 11 39 31 PM" src="https://github.com/singhivs/Spreadsheet-Application/assets/116673844/97567402-0c30-4984-ab42-16c84bae9876">
 
 Adding Rows/Columns: To add a row or column, click on a cell, and a context menu will appear. You can add a row above, below, or a column to the left or right of the selected cell. You can also use the buttons at the top right and bottom left marked with a '+' sign to add a row or column.
 
